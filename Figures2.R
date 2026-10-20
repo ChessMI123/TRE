@@ -1,3 +1,15 @@
+adsl %>%
+  summarise(
+    Heart = sum(radiation_heart == 1, na.rm = TRUE),
+    TBI = sum(radiation_totalbody == 1, na.rm = TRUE),
+    Both = sum(radiation_heart == 1 & radiation_totalbody == 1, na.rm = TRUE),
+    Either = sum(radiation_heart == 1 | radiation_totalbody == 1, na.rm = TRUE)
+  )
+
+
+
+
+
 ####################################################################################################
 #                                                                                                  #
 # ¤Name:         Figures2.R                                                                        #
