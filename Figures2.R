@@ -1,3 +1,83 @@
+# Define adjustments for each outcome and group
+adjustments <- list(
+  MACE = list(
+    cases = c("age", "sex"),
+    controls = c("age", "sex")
+  ),
+  Death = list(
+    cases = c("age", "sex"),
+    controls = c("age", "sex")
+  )
+)
+
+# Function
+calculate_ARR2 <- function(data, outcome, exposure, adjustments) {
+
+  data <- data %>%
+    mutate(
+      tde = .data[[paste0(exposure, "_td")]],
+      event = .data[[paste0(outcome, "_event")]]
+    )
+
+  map_dfr(c("cases", "controls"), function(grp) {
+
+    dat <- filter(data, group == grp)
+
+    # Select adjustment variables for outcome and group
+    covs <- adjustments[[outcome]][[grp]]
+
+    # Create model formula
+    formula <- reformulate(
+      c("tde", covs),
+      response = "event"
+    )
+
+    # Poisson regression
+    fit <- glm(
+      formula,
+      offset = log(person_time),
+      family = poisson(link = "log"),
+      data = dat
+    )
+
+    # Rate ratio and 95% CI
+    RR <- exp(coef(fit)["tde"])
+    CI <- exp(confint.default(fit)["tde", ])
+
+    # Proportion of events among exposed
+    pd <- mean(dat$tde[dat$event == 1], na.rm = TRUE)
+
+    # Population attributable fraction
+    PAF <- pd * (RR - 1) / RR
+
+    tibble(
+      Outcome = outcome,
+      Exposure = exposure,
+      Group = ifelse(grp == "cases", "Cases", "Controls"),
+      RR = sprintf("%.2f (%.2f-%.2f)", RR, CI[1], CI[2]),
+      pd = sprintf("%.2f", pd * 100),
+      PAF = sprintf("%.2f", as.numeric(PAF) * 100)
+    )
+  })
+}
+
+# Run analyses
+result <- calculate_ARR2(
+  data = data,
+  outcome = "MACE",
+  exposure = "Hypertension",
+  adjustments = adjustments
+)
+
+
+
+
+
+
+
+
+
+
 adsl %>%
   summarise(
     Heart = sum(radiation_heart == 1, na.rm = TRUE),
