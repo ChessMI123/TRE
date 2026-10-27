@@ -7,6 +7,246 @@ compute_ARR_adj <- function(data, outcome, exposure, adjustments,
       event = .data[[paste0(outcome, "_event")]]
     )
 
+  # Overall rate ratio: cases vs controls
+  fit_overall <- glm(
+    event ~ group,
+    offset = log(person_time),
+    family = poisson(link = "log"),
+    data = data
+  )
+
+  RR_survivors <- exp(coef(fit_overall)["groupcases"])
+
+  # Function to calculate ARR for bootstrap
+  calculate_ARR <- function(dat) {
+
+    # Overall rate ratio
+    fit_overall_b <- glm(
+      event ~ group,
+      offset = log(person_time),
+      family = poisson(link = "log"),
+      data = dat
+    )
+
+    RR_survivors_b <- exp(coef(fit_overall_b)["groupcases"])
+
+    # Adjusted rate ratio for cases
+    dat_cases <- filter(dat, group == "cases")
+
+    covs <- adjustments[[outcome]][["cases"]]
+
+    formula <- as.formula(
+      paste("event ~", paste(c("tde", covs), collapse = " + "))
+    )
+
+    fit_b <- glm(
+      formula,
+      offset = log(person_time),
+      family = poisson(link = "log"),
+      data = dat_cases
+    )
+
+    RR_b <- exp(coef(fit_b)["tde"])
+
+    # Proportion of events among exposed
+    pd_b <- mean(
+      dat_cases$tde[dat_cases$event == 1],
+      na.rm = TRUE
+    )
+
+    # Population attributable fraction
+    PAF_b <- pd_b * (RR_b - 1) / RR_b
+
+    # Attributable relative rate
+    as.numeric(PAF_b * RR_survivors_b * 100)
+  }
+
+  # Bootstrap ARR confidence interval
+  ARR_CI <- c(NA_real_, NA_real_)
+
+  if (bootstrap) {
+
+    # File path for exposure-specific CI
+    ci_path <- file.path(
+      "/safe/data/APNC/SCARLET Riskfactors/Data/Results",
+      paste0(exposure, "_CI.xlsx")
+    )
+
+    if (file.exists(ci_path)) {
+
+      # Load previously calculated CI
+      ARR_CI <- as.numeric(
+        readxl::read_xlsx(ci_path)$ARR_CI
+      )
+
+      if (length(ARR_CI) != 2 || any(!is.finite(ARR_CI))) {
+        stop("Saved ARR confidence interval is invalid: ", ci_path)
+      }
+
+    } else {
+
+      # Split data once by individual
+      if (!"LopNr" %in% names(data) || anyNA(data$LopNr)) {
+        stop("LopNr must exist and contain no missing values.")
+      }
+
+      split_data <- split(data, data$LopNr)
+      ids <- names(split_data)
+
+      # Bootstrap with 5000 samples
+      ARR_boot <- replicate(5000, {
+
+        sampled_ids <- sample(
+          ids,
+          length(ids),
+          replace = TRUE
+        )
+
+        boot_data <- do.call(
+          rbind,
+          unname(split_data[sampled_ids])
+        )
+
+        tryCatch(
+          calculate_ARR(boot_data),
+          error = function(e) NA_real_
+        )
+      })
+
+      # Keep valid bootstrap estimates
+      valid_boot <- ARR_boot[is.finite(ARR_boot)]
+
+      if (length(valid_boot) < 5000) {
+        warning(
+          length(valid_boot),
+          " of 5000 bootstrap estimates were valid."
+        )
+      }
+
+      if (length(valid_boot) < 5000) {
+        stop(
+          "Not all bootstrap iterations produced valid estimates. ",
+          "Confidence interval was not saved."
+        )
+      }
+
+      # Calculate 95% percentile confidence interval
+      ARR_CI <- as.numeric(
+        quantile(
+          valid_boot,
+          probs = c(0.025, 0.975),
+          na.rm = TRUE
+        )
+      )
+
+      # Save confidence interval
+      dir.create(dirname(ci_path), recursive = TRUE, showWarnings = FALSE)
+
+      writexl::write_xlsx(
+        x = tibble(
+          ARR_CI = ARR_CI
+        ),
+        path = ci_path
+      )
+    }
+  }
+
+  # Calculate adjusted estimates for cases and controls
+  map_dfr(c("cases", "controls"), function(grp) {
+
+    dat <- filter(data, group == grp)
+
+    # Select adjustment variables for outcome and group
+    covs <- adjustments[[outcome]][[grp]]
+
+    # Create model formula
+    formula <- as.formula(
+      paste("event ~", paste(c("tde", covs), collapse = " + "))
+    )
+
+    # Poisson regression
+    fit <- glm(
+      formula,
+      offset = log(person_time),
+      family = poisson(link = "log"),
+      data = dat
+    )
+
+    # Rate ratio and 95% CI
+    RR <- exp(coef(fit)["tde"])
+    CI <- exp(confint.default(fit)["tde", ])
+
+    # Proportion of events among exposed
+    pd <- mean(
+      dat$tde[dat$event == 1],
+      na.rm = TRUE
+    )
+
+    # Population attributable fraction
+    PAF <- pd * (RR - 1) / RR
+
+    # Attributable relative rate (cases only)
+    ARR <- if (grp == "cases") {
+      PAF * RR_survivors * 100
+    } else {
+      NA_real_
+    }
+
+    # Format ARR with optional bootstrap CI
+    ARR_result <- if (grp == "cases") {
+
+      if (bootstrap) {
+        sprintf(
+          "%.2f (%.2f-%.2f)",
+          ARR, ARR_CI[1], ARR_CI[2]
+        )
+      } else {
+        sprintf("%.2f", ARR)
+      }
+
+    } else {
+      ""
+    }
+
+    tibble(
+      Outcome = outcome,
+      Exposure = exposure,
+      Group = ifelse(grp == "cases", "Cases", "Controls"),
+      RR = sprintf("%.2f (%.2f-%.2f)", RR, CI[1], CI[2]),
+      pd = sprintf("%.2f", pd * 100),
+      PAF = sprintf("%.2f", as.numeric(PAF) * 100),
+      ARR = ARR_result
+    )
+  })
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+compute_ARR_adj <- function(data, outcome, exposure, adjustments,
+                            bootstrap = FALSE) {
+
+  data <- data %>%
+    mutate(
+      tde = .data[[paste0(exposure, "_td")]],
+      event = .data[[paste0(outcome, "_event")]]
+    )
+
   # Function to calculate ARR
   calculate_ARR <- function(dat) {
 
