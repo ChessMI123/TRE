@@ -1,3 +1,12 @@
+scale_color_manual(values = c(
+  "Controls"                 = "#F8766D",
+  "Renal tumors"             = "#A3A500",
+  "Malignant bone tumors"    = "#00BF7D",
+  "Radiation to the heart"   = "#00B0F6",
+  "Radiation to the abdomen" = "#E69F00"
+)) +
+
+
 compute_ARR_adj <- function(data, outcome, exposure, adjustments,
                             bootstrap = FALSE) {
 
