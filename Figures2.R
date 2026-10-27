@@ -1,3 +1,184 @@
+compute_ARR_adj <- function(data, outcome, exposure, adjustments,
+                            bootstrap = FALSE) {
+
+  data <- data %>%
+    mutate(
+      tde = .data[[paste0(exposure, "_td")]],
+      event = .data[[paste0(outcome, "_event")]]
+    )
+
+  # Function to calculate ARR
+  calculate_ARR <- function(dat) {
+
+    # Overall rate ratio: cases vs controls
+    fit_overall <- glm(
+      event ~ group,
+      offset = log(person_time),
+      family = poisson(link = "log"),
+      data = dat
+    )
+
+    RR_survivors <- exp(coef(fit_overall)["groupcases"])
+
+    # Adjusted rate ratio for cases
+    dat_cases <- filter(dat, group == "cases")
+    covs <- adjustments[[outcome]][["cases"]]
+
+    formula <- reformulate(
+      c("tde", covs),
+      response = "event"
+    )
+
+    fit <- glm(
+      formula,
+      offset = log(person_time),
+      family = poisson(link = "log"),
+      data = dat_cases
+    )
+
+    RR <- exp(coef(fit)["tde"])
+
+    pd <- mean(dat_cases$tde[dat_cases$event == 1], na.rm = TRUE)
+
+    PAF <- pd * (RR - 1) / RR
+
+    as.numeric(PAF * RR_survivors * 100)
+  }
+
+  # Bootstrap ARR confidence interval
+  ARR_CI <- c(NA_real_, NA_real_)
+
+  if (bootstrap) {
+
+    split_data <- split(data, data$LopNr)
+    ids <- names(split_data)
+
+    ARR_boot <- replicate(5000, {
+
+      sampled_ids <- sample(ids, length(ids), replace = TRUE)
+
+      boot_data <- do.call(
+        rbind,
+        unname(split_data[sampled_ids])
+      )
+
+      tryCatch(
+        calculate_ARR(boot_data),
+        error = function(e) NA_real_
+      )
+    })
+
+    valid_boot <- ARR_boot[is.finite(ARR_boot)]
+
+    if (length(valid_boot) < 5000) {
+      warning(
+        length(valid_boot),
+        " of 5000 bootstrap estimates were valid."
+      )
+    }
+
+    if (length(valid_boot) > 0) {
+      ARR_CI <- quantile(
+        valid_boot,
+        probs = c(0.025, 0.975),
+        na.rm = TRUE
+      )
+    }
+  }
+
+  # Overall rate ratio: cases vs controls
+  fit_overall <- glm(
+    event ~ group,
+    offset = log(person_time),
+    family = poisson(link = "log"),
+    data = data
+  )
+
+  RR_survivors <- exp(coef(fit_overall)["groupcases"])
+
+  map_dfr(c("cases", "controls"), function(grp) {
+
+    dat <- filter(data, group == grp)
+
+    # Select adjustment variables
+    covs <- adjustments[[outcome]][[grp]]
+
+    # Create model formula
+    formula <- reformulate(
+      c("tde", covs),
+      response = "event"
+    )
+
+    # Poisson regression
+    fit <- glm(
+      formula,
+      offset = log(person_time),
+      family = poisson(link = "log"),
+      data = dat
+    )
+
+    # Rate ratio and 95% CI
+    RR <- exp(coef(fit)["tde"])
+    CI <- exp(confint.default(fit)["tde", ])
+
+    # Proportion of events among exposed
+    pd <- mean(dat$tde[dat$event == 1], na.rm = TRUE)
+
+    # Population attributable fraction
+    PAF <- pd * (RR - 1) / RR
+
+    # Attributable relative rate (cases only)
+    ARR <- if (grp == "cases") {
+      PAF * RR_survivors * 100
+    } else {
+      NA_real_
+    }
+
+    # Format ARR
+    ARR_result <- if (grp == "cases") {
+
+      if (bootstrap) {
+        sprintf(
+          "%.2f (%.2f-%.2f)",
+          ARR, ARR_CI[1], ARR_CI[2]
+        )
+      } else {
+        sprintf("%.2f", ARR)
+      }
+
+    } else {
+      ""
+    }
+
+    tibble(
+      Outcome = outcome,
+      Exposure = exposure,
+      Group = ifelse(grp == "cases", "Cases", "Controls"),
+      RR = sprintf("%.2f (%.2f-%.2f)", RR, CI[1], CI[2]),
+      pd = sprintf("%.2f", pd * 100),
+      PAF = sprintf("%.2f", as.numeric(PAF) * 100),
+      ARR = ARR_result
+    )
+  })
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Define adjustments for each outcome and group
 adjustments <- list(
   MACE = list(
