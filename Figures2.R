@@ -1,3 +1,15 @@
+mutate(
+  across(all_of(paste0("OPD", 1:30)), ~ as.Date(.x, format = "%Y-%m-%d")),
+  EVENTDATE = coalesce(
+    do.call(pmin, c(pick(all_of(paste0("OPD", 1:30))), na.rm = TRUE)),
+    UTDATUM
+  )
+)
+
+
+
+
+
 data_check <- data %>%
   group_by(LopNr) %>%
   mutate(
