@@ -1,3 +1,15 @@
+data_check <- data %>%
+  group_by(LopNr) %>%
+  mutate(
+    match = any(
+      sapply(seq_along(UTDATUM), function(i) {
+        any(UTDATUM[i] == INDATUM[-i], na.rm = TRUE)
+      })
+    )
+  ) %>%
+  ungroup()
+
+
 CreateEVENTS(
   ICD10     = "^(309[4678]|308[123]|3161|3157|317[01]|FPE(00|10|20|26|40|96)|FPF(00|10|20|96)|FPG(10|30|33|36|50|96)|DF013|ZXG[45]0)",
   DISEASE   = "Pacemaker",
