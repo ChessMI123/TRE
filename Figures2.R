@@ -1,3 +1,9 @@
+
+
+ICD10 = "^(FPE(00|10|20|26|40|96)|FPF(00|10|20|96)|FPG(10|30|33|36|50|96)|DF013|ZXG[45]0)"
+ICD10 = "^(FQA(00|10|20|30|40|96)|FX[456]0|FXN00)"
+ICD10 = "^(DF0(12|17|25|28)|ZXG05)"
+
 scale_color_manual(values = c(
   "Controls"                 = "#F8766D",
   "Renal tumors"             = "#A3A500",
