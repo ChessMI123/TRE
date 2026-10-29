@@ -1,3 +1,78 @@
+
+*** get N as a macro variable;
+proc sql;
+select Placebo, Dexamethasone
+into :N_Placebo, :N_Dexamethasone
+from T1 where A='';
+quit;
+
+%put &N_Placebo. &N_Dexamethasone.;
+
+data T2;
+	set T2(rename=(Placebo=Placebo_tmp
+	               Dexamethasone=Dexamethasone_tmp));
+	if A ='' then delete;
+
+	Placebo = tranwrd(Placebo_tmp,";","¤n");
+	Dexamethasone = tranwrd(Dexamethasone_tmp,";","¤n");
+
+	drop Placebo_tmp Dexamethasone_tmp Overall_tmp;
+run;
+
+data hj;
+	length A $200;
+	s = 0.5;	A = "¤S={just = left font_weight = bold font_style = italic}Corticosteroid before study start";	output;
+	s = 9.5;	A = "¤S={just = left font_weight = bold font_style = italic}Corticosteroids during study intervention";	output;
+run;
+
+data T2;
+    set hj T2;
+    if substr(A,1,1) = ' ' then A = cats("¤S={leftmargin=10}", strip(A));
+	format A;
+run;
+
+proc sort data=T2;
+    by s;
+run;
+
+options nodate nonumber leftmargin=2.5cm rightmargin=2.5cm topmargin=2.5cm bottommargin=2.5cm;
+ods escapechar ="¤";
+ods rtf file="&projroot.\Output\TableHeader_02_&rdat8..rtf" style=styles.statistical bodytitle;
+title;
+ods rtf text= "Table 2. Corticosteroid exposure (PP population)";
+ods rtf close;
+
+
+ods escapechar ="¤";
+ods rtf file="&projroot.\Output\Table_02_&rdat8..rtf" style=styles.statistical bodytitle;
+proc report data= T2 nowd split="#" style(header)={background=CXECEDEC};
+    column A Placebo Dexamethasone D;
+    define A/ "Variable" style= {just=left cellwidth=4.5cm font_size=1};
+    define Placebo/ "Placebo¤n &N_Placebo." style= {just=center cellwidth=3cm font_size=1};
+    define Dexamethasone/ "Dexamethasone¤n &N_Dexamethasone." style= {just=center cellwidth=3cm font_size=1};
+    define D/ "p-value" style= {just=center cellwidth=1.2cm font_size=1};
+
+    compute after / style={just=left font_size=1 backgroundcolor=CXECEDEC };
+    line "Categorical variables are presented as count(%) and continuous variables are presented by median [range] and number of non-missing.";
+	line "Categorical variables were compared using Fisher’s exact test, and continuous variables were compared using the Mann–Whitney U test.";
+    line "SAS version 9.4";
+    endcomp;
+run;
+ods rtf close;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 attr(adsl$bl_MI, "label")           <- "Myocardial infarction"
 attr(adsl$bl_angina, "label")       <- "Angina pectoris"
 attr(adsl$bl_valvular, "label")     <- "Valvular heart disease"
