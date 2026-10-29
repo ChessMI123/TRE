@@ -1,3 +1,16 @@
+KPI_2009_2022 <- data.frame(
+  lisayr = 2009:2022,
+  KPI = c(
+    299.66, 303.46, 311.43, 314.20, 314.06,
+    313.49, 313.35, 316.43, 322.11, 328.40,
+    334.26, 335.92, 343.19, 371.91
+  )
+) %>%
+  mutate(KPI_factor = 299.66 / KPI)
+
+
+
+
 mutate(
   across(all_of(paste0("OPD", 1:30)), ~ as.Date(.x, format = "%Y-%m-%d")),
   EVENTDATE = coalesce(
