@@ -1,3 +1,20 @@
+attr(adsl$bl_MI, "label")           <- "Myocardial infarction"
+attr(adsl$bl_angina, "label")       <- "Angina pectoris"
+attr(adsl$bl_valvular, "label")     <- "Valvular heart disease"
+attr(adsl$bl_card_arrest, "label")  <- "Cardiac arrest"
+attr(adsl$bl_AFib, "label")         <- "Atrial fibrillation"
+attr(adsl$bl_stroke, "label")       <- "Stroke"
+attr(adsl$bl_PAD, "label")          <- "Peripheral artery disease"
+attr(adsl$bl_Hypertension, "label") <- "Hypertension"
+attr(adsl$bl_Diabetes, "label")     <- "Diabetes mellitus"
+attr(adsl$bl_Conduct_dis, "label")  <- "Cardiac conduction disorder"
+attr(adsl$bl_VTE, "label")          <- "Venous thromboembolism"
+
+
+
+
+
+
 KPI_2009_2022 <- data.frame(
   lisayr = 2009:2022,
   KPI = c(
