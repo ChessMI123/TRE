@@ -1,3 +1,14 @@
+adsl <- adsl %>%
+  mutate(
+    deathdt = if_else(
+      deathdt <= baseline & cause_of_death == "CV death",
+      baseline,
+      deathdt
+    )
+  )
+
+
+
 
 *** get N as a macro variable;
 proc sql;
