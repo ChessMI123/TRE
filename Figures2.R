@@ -1,3 +1,47 @@
+time_to_event_comprisk <- function(data, disease) {
+
+  tmp_col   <- paste0(disease, "_tmp")
+  ind_col   <- paste0("INDATUM_", disease)
+  event_col <- paste0(disease, "_comprisk")
+  years_col <- paste0(disease, "yrs_comprisk")
+
+  data %>%
+    rowwise() %>%
+    mutate(
+      cens2 = min(endofFU, migdate_cens, na.rm = TRUE),
+
+      !!event_col := case_when(
+        .data[[tmp_col]] == 1 & .data[[ind_col]] <= cens ~ 1,
+        .data[[tmp_col]] == 1 & .data[[ind_col]] > cens  ~ 0,
+        deathdt < cens                                 ~ 2,
+        .data[[tmp_col]] == 0                          ~ 0
+      ),
+
+      !!years_col := as.numeric(
+        case_when(
+          .data[[tmp_col]] == 1 & .data[[ind_col]] <= cens ~
+            (.data[[ind_col]] - baseline) / 365.25,
+
+          .data[[tmp_col]] == 1 & .data[[ind_col]] > cens ~
+            (cens - baseline) / 365.25,
+
+          deathdt < cens ~
+            (deathdt - baseline) / 365.25,
+
+          .data[[tmp_col]] == 0 ~
+            (cens - baseline) / 365.25
+        )
+      )
+    ) %>%
+    ungroup()
+}
+
+
+
+
+
+
+
 adsl <- adsl %>%
   mutate(
     deathdt = if_else(
