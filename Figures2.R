@@ -1,3 +1,28 @@
+
+
+result <- compute_ARR_CI_adj(
+  data = adsl,
+  outcome = "MACE",
+  exposure = "Hypertension",
+  bootstrap = FALSE
+)
+
+print(result)
+
+
+result <- compute_ARR_CI_adj(
+  data = adsl,
+  outcome = "MACE",
+  exposure = "Hypertension",
+  bootstrap = TRUE
+)
+
+print(result)
+
+
+
+
+
 time_to_event_comprisk <- function(data, disease) {
 
   tmp_col   <- paste0(disease, "_tmp")
