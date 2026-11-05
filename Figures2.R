@@ -1,4 +1,9 @@
+CI <- data.frame(
+  lower = unname(CI[1]),
+  upper = unname(CI[2])
+)
 
+save(CI, file = "/safe/data/APNC/SCARLET Riskfactors/Data/Derived/CI_HF.RData")
 
 result <- compute_ARR_CI_adj(
   data = adsl,
