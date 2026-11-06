@@ -1,3 +1,13 @@
+
+duplicates <- Pop %>%
+  filter(REASON == "Primärimplantation") %>%
+  group_by(LopNr) %>%
+  filter(n_distinct(EVENTDATE, na.rm = TRUE) > 1) %>%
+  ungroup() %>%
+  arrange(LopNr, EVENTDATE)
+
+
+
 get_therapy(
   REG = "SV",
   Name = "ICD",
