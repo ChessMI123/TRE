@@ -1,3 +1,12 @@
+
+
+Pop3 <- Pop3 %>%
+  left_join(SwedeHF, by = "LopNr") %>%
+  mutate(in_SwedeHF = as.integer(LopNr %in% SwedeHF$LopNr))
+
+
+
+
 Pop <- open_dataset(file.path(der, "FirstTimeOutcome_HF.parquet")) %>%
   collect() %>%
   rename(baseline = INDATUM) %>%
