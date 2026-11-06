@@ -1,3 +1,11 @@
+Pop <- open_dataset(file.path(der, "FirstTimeOutcome_HF.parquet")) %>%
+  collect() %>%
+  rename(baseline = INDATUM) %>%
+  mutate(lisayr = year(baseline))
+
+
+
+
 # ¤Specify data path
 projroot <- "S:/Cons/AnnHellström/MDM-Vision5y"
 dataroot <- "Q:/Cons/AnnHellström/MDM-Vision5y"
