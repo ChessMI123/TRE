@@ -1,4 +1,11 @@
-
+Pop3 <- Pop3 %>%
+  mutate(
+    deathdt = case_when(
+      deathdt <= baseline & !is.na(befdoddtm) ~ befdoddtm,
+      deathdt <= baseline &  is.na(befdoddtm) ~ baseline,
+      TRUE ~ deathdt
+    )
+  )
 
 Pop3 <- Pop3 %>%
   left_join(SwedeHF, by = "LopNr") %>%
