@@ -1,3 +1,26 @@
+# ¤Specify data path
+projroot <- "S:/Cons/AnnHellström/MDM-Vision5y"
+dataroot <- "Q:/Cons/AnnHellström/MDM-Vision5y"
+dataroot2 <- "Q:/Cons/AnnHellström/MDM"
+
+org <- file.path(dataroot, "data", "original")
+cle <- file.path(dataroot, "data", "cleaned" )
+der <- file.path(dataroot, "data", "derived" )
+res <- file.path(dataroot, "data", "results" )
+der2 <- file.path(dataroot2, "data", "derived")
+
+
+
+
+
+
+
+
+
+
+
+
+
 CI <- data.frame(
   lower = unname(CI[1]),
   upper = unname(CI[2])
