@@ -1,3 +1,10 @@
+get_therapy(
+  REG = "SV",
+  Name = "ICD",
+  ICD_string = "^FPG(10|30|33|36|50|96)"
+)
+
+
 Pop3 <- Pop3 %>%
   mutate(
     deathdt = case_when(
