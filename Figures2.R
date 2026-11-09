@@ -1,4 +1,19 @@
+# Exclude NPR events if CRT is recorded within +/- 7 days
+CRT_dates <- Pacemaker_registry %>%
+  filter(CRT == 1) %>%
+  transmute(
+    LopNr,
+    CRT_date = as.Date(EVENTDATE)
+  )
 
+ICD_NPR <- ICD_NPR %>%
+  anti_join(
+    CRT_dates,
+    by = join_by(
+      LopNr,
+      between(EVENTDATE_ICD, CRT_date - 7, CRT_date + 7)
+    )
+  )
 duplicates <- Pop %>%
   filter(REASON == "Primärimplantation") %>%
   group_by(LopNr) %>%
