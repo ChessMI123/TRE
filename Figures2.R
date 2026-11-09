@@ -1,3 +1,29 @@
+# Show records where dates are less than 30 days apart
+mutate(
+  across(
+    c(EVENTDATE_ICD, ICD, REASON_ICD),
+    ~ if_else(
+      !is.na(EVENTDATE_ICD) & !is.na(REASON_CRT) &
+        abs(as.numeric(EVENTDATE_ICD - REASON_CRT)) < 30,
+      NA,
+      .x
+    )
+  )
+)
+
+
+
+
+
+adsl %>%
+  filter(
+    !is.na(EVENTDATE_ICD),
+    !is.na(REASON_CRT),
+    abs(as.numeric(EVENTDATE_ICD - REASON_CRT)) < 30
+  ) %>%
+  select(LopNr, EVENTDATE_ICD, REASON_CRT, ICD, REASON_ICD)
+
+
 
 CRT_dates <- Pacemaker_registry %>%
   filter(POSITION == "Vänster kammare", CRT == 1) %>%
