@@ -1,3 +1,37 @@
+
+CRT_dates <- Pacemaker_registry %>%
+  filter(POSITION == "Vänster kammare", CRT == 1) %>%
+  transmute(
+    LopNr,
+    CRT_start = as.Date(EVENTDATE) %m-% months(1),
+    CRT_end = as.Date(EVENTDATE) %m+% months(1)
+  )
+
+Pacemaker_registry <- Pacemaker_registry %>%
+  mutate(
+    EVENTDATE = as.Date(EVENTDATE),
+    row_id = row_number()
+  )
+
+matched_ids <- Pacemaker_registry %>%
+  filter(POSITION == "Höger kammare", CRT == 0) %>%
+  semi_join(
+    CRT_dates,
+    by = join_by(
+      LopNr,
+      between(EVENTDATE, CRT_start, CRT_end)
+    )
+  ) %>%
+  pull(row_id)
+
+Pacemaker_registry <- Pacemaker_registry %>%
+  mutate(
+    CRT = if_else(row_id %in% matched_ids, 1, CRT)
+  ) %>%
+  select(-row_id)
+
+
+
 # Exclude NPR events if CRT is recorded within +/- 7 days
 CRT_dates <- Pacemaker_registry %>%
   filter(CRT == 1) %>%
