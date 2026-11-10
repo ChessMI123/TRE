@@ -1,3 +1,49 @@
+library(dplyr)
+
+adsl <- adsl %>%
+  # Step 1: Same procedure duration and fluoroscopy time
+  group_by(LopNr, OPDURATION, FLUORTIME) %>%
+  mutate(
+    CRT = if_else(
+      !is.na(OPDURATION) & !is.na(FLUORTIME),
+      max(CRT, na.rm = TRUE),
+      CRT
+    )
+  ) %>%
+  ungroup() %>%
+
+  # Step 2: Right and left ventricle within 14 days
+  group_by(LopNr) %>%
+  mutate(
+    CRT = {
+      crt <- CRT
+      right <- which(POSITION == "Höger kammare" & !is.na(EVENTDATE))
+      left  <- which(POSITION == "Vänster kammare" & !is.na(EVENTDATE))
+
+      for (i in right) {
+        for (j in left) {
+          if (abs(as.numeric(EVENTDATE[i] - EVENTDATE[j])) < 14 &&
+              !is.na(crt[i]) && !is.na(crt[j]) &&
+              crt[i] != crt[j]) {
+
+            new_crt <- max(crt[i], crt[j])
+            crt[c(i, j)] <- new_crt
+          }
+        }
+      }
+
+      crt
+    }
+  ) %>%
+  ungroup()
+
+
+
+
+
+
+
+
 # Show records where dates are less than 30 days apart
 mutate(
   across(
