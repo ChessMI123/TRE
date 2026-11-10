@@ -1,3 +1,36 @@
+# Step 2: Right and left ventricle within 14 days
+group_by(LopNr) %>%
+mutate(
+  CRT = {
+    crt <- CRT
+
+    if (!any(substr(REASON, 1, 4) == "Byte", na.rm = TRUE)) {
+
+      right <- which(POSITION == "Höger kammare" & !is.na(EVENTDATE))
+      left  <- which(POSITION == "Vänster kammare" & !is.na(EVENTDATE))
+
+      for (i in right) {
+        for (j in left) {
+          if (abs(as.numeric(EVENTDATE[i] - EVENTDATE[j])) < 14 &&
+              !is.na(crt[i]) && !is.na(crt[j]) &&
+              crt[i] != crt[j]) {
+
+            new_crt <- max(crt[i], crt[j])
+            crt[c(i, j)] <- new_crt
+          }
+        }
+      }
+    }
+
+    crt
+  }
+) %>%
+ungroup()
+
+
+
+
+
 library(dplyr)
 
 adsl <- adsl %>%
