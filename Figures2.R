@@ -1,3 +1,17 @@
+
+####################
+#### MEDICATIONS ####
+####################
+
+get_medication(NAME = "Betablockers",   ICD_CODE = "^C07")
+get_medication(NAME = "RAS_inhibitors", ICD_CODE = "^(C09A|C09B|C09C|C09D)")
+get_medication(NAME = "MRA",            ICD_CODE = "^C03DA")
+get_medication(NAME = "ARNI",           ICD_CODE = "^C09DX04")
+get_medication(NAME = "SGLT2i",         ICD_CODE = "^A10BK")
+
+
+
+
 # Step 2: Right and left ventricle within 14 days
 group_by(LopNr) %>%
 mutate(
