@@ -1,3 +1,21 @@
+# Convert Yes/No to 1/0
+yes_no <- function(x) {
+  case_when(
+    x == "Yes" ~ 1,
+    x == "No"  ~ 0,
+    TRUE       ~ NA_real_
+  )
+}
+
+# Apply to medication variables
+SwedeHF <- SwedeHF %>%
+  mutate(across(
+    c(BETA_BLOCKER, MRA, SGLT2, ARNI, ACE_INHIBITOR, A2_BLOCKER_ARB),
+    yes_no
+  ))
+
+
+
 ### Medications
 Medication_set <- c(
   "Betablockers",
