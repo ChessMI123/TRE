@@ -1,4 +1,58 @@
+### Medications
+Medication_set <- c(
+  "Betablockers",
+  "RAS_inhibitors",
+  "MRA",
+  "ARNI",
+  "SGLT2i"
+)
 
+uppbound <- 0
+lowbound <- -Inf
+
+for (Medication in Medication_set) {
+
+  message(Medication)
+
+  file_path <- file.path(
+    der,
+    paste0("FirstTimePrescription_", Medication, ".parquet")
+  )
+
+  if (!file.exists(file_path)) {
+    message("File not found: ", file_path)
+    next
+  }
+
+  tmp <- read_parquet(file_path) %>%
+    select(LopNr, EDATUM)
+
+  col_name <- paste0("bl_", Medication)
+
+  if (col_name %in% colnames(df_temp)) {
+    df_temp <- df_temp %>% select(-all_of(col_name))
+  }
+
+  df_adsl <- df_temp %>%
+    left_join(tmp, by = "LopNr")
+
+  df_adsl$days <- as.numeric(
+    as.Date(df_adsl$EDATUM) - as.Date(df_adsl$baseline)
+  )
+
+  df_temporary <- df_adsl %>%
+    filter(days <= uppbound, days >= lowbound)
+
+  df_for_join <- data.frame(
+    LopNr = unique(df_temporary$LopNr)
+  ) %>%
+    mutate(!!col_name := 1)
+
+  df_temp <- df_temp %>%
+    left_join(df_for_join, by = "LopNr")
+
+  df_temp[[col_name]][is.na(df_temp[[col_name]])] <- 0
+}
 ####################
 #### MEDICATIONS ####
 ####################
