@@ -1,3 +1,5 @@
+mutate(CRT = if_else(REASON == "Byte PM till CRT-D pga hjärtsvikt", 1, CRT))
+
 # Prioritize Pacemaker Registry data by excluding NPR records with a corresponding
 # Pacemaker Registry event within 14 days before admission or after discharge.
 
