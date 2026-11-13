@@ -1,3 +1,39 @@
+time_to_event <- function(data, event) {
+
+  tmp_col   <- paste0(event, "_tmp")
+  ind_col   <- paste0("EVENTDATE_", event)
+  years_col <- paste0(event, "yrs")
+  age_col   <- paste0(event, "ageyrs")
+
+  data %>%
+    rename(!!tmp_col := all_of(event)) %>%
+    mutate(
+      !!event := case_when(
+        .data[[tmp_col]] == 1 & .data[[ind_col]] <= cens ~ 1,
+        TRUE ~ 0
+      ),
+
+      !!years_col := as.numeric(
+        case_when(
+          .data[[event]] == 1 ~ (.data[[ind_col]] - baseline) / 365.25,
+          TRUE ~ (cens - baseline) / 365.25
+        )
+      ),
+
+      !!age_col := age + .data[[years_col]]
+    ) %>%
+    select(-all_of(tmp_col))
+}
+
+
+
+
+
+
+
+
+
+
 CIED <- bind_rows(
   ICD %>% rename(EVENTDATE_CIED = EVENTDATE_ICD, REASON_CIED = REASON_ICD),
   CRT %>% rename(EVENTDATE_CIED = EVENTDATE_CRT, REASON_CIED = REASON_CRT),
