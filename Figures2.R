@@ -1,3 +1,36 @@
+time_to_event_comprisk <- function(data, event) {
+
+  tmp_col   <- paste0(event, "_tmp")
+  ind_col   <- paste0("EVENTDATE_", event)
+  event_col <- paste0(event, "comprisk")
+  years_col <- paste0(event, "compriskyrs")
+
+  data %>%
+    mutate(
+      !!tmp_col := .data[[event]],
+
+      !!event_col := case_when(
+        .data[[tmp_col]] == 1 & .data[[ind_col]] <= cens ~ 1,
+        !is.na(deathdt) & deathdt <= cens ~ 2,
+        TRUE ~ 0
+      ),
+
+      !!years_col := as.numeric(
+        case_when(
+          .data[[event_col]] == 1 ~ .data[[ind_col]] - baseline,
+          TRUE ~ cens - baseline
+        )
+      ) / 365.25
+    ) %>%
+    select(-all_of(tmp_col))
+}
+
+
+
+
+
+
+
 time_to_event <- function(data, event) {
 
   tmp_col   <- paste0(event, "_tmp")
