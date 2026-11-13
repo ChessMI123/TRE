@@ -1,3 +1,8 @@
+# Prioritize Pacemaker Registry data by excluding NPR records with a corresponding
+# Pacemaker Registry event within 14 days before admission or after discharge.
+
+
+
 # Convert Yes/No to 1/0
 yes_no <- function(x) {
   case_when(
