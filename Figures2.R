@@ -1,3 +1,23 @@
+CIED <- bind_rows(
+  ICD %>% rename(EVENTDATE_CIED = EVENTDATE_ICD, REASON_CIED = REASON_ICD),
+  CRT %>% rename(EVENTDATE_CIED = EVENTDATE_CRT, REASON_CIED = REASON_CRT),
+  PM  %>% rename(EVENTDATE_CIED = EVENTDATE_PM, REASON_CIED = REASON_PM)
+) %>%
+  filter(!is.na(EVENTDATE_CIED)) %>%
+  group_by(LopNr) %>%
+  arrange(EVENTDATE_CIED, .by_group = TRUE) %>%
+  slice(1) %>%
+  ungroup() %>%
+  mutate(CIED = 1)
+
+adsl4 <- adsl3 %>%
+  left_join(CIED, by = "LopNr") %>%
+  mutate(CIED = coalesce(CIED, 0))
+
+
+
+
+
 mutate(CRT = if_else(REASON == "Byte PM till CRT-D pga hjärtsvikt", 1, CRT))
 
 # Prioritize Pacemaker Registry data by excluding NPR records with a corresponding
