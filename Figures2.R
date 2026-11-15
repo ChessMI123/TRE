@@ -1,3 +1,25 @@
+df_over   <- subset(plot_data, group == "Overall")
+df_male   <- subset(plot_data, group == "Male")
+df_female <- subset(plot_data, group == "Female")
+
+res <- data.frame(
+  time_point  = time_point,
+  ltr.overall = fmt_ci(ltr_over, se_over),
+  ltr.Male    = fmt_ci(ltr_ref, se_ref),
+  ltr.Female  = fmt_ci(ltr_other, se_other),
+  ltr.diff    = fmt_ci(ltr_diff, se_diff),
+  pval        = summary(fit_by_sex)$coefficients[2, 4],
+
+  first.overall = first_age_above(df_over, 0.01),
+  ten.overall   = first_age_above(df_over, 0.10),
+
+  first.Male    = first_age_above(df_male, 0.01),
+  ten.Male      = first_age_above(df_male, 0.10),
+
+  first.Female  = first_age_above(df_female, 0.01),
+  ten.Female    = first_age_above(df_female, 0.10)
+)
+
 rep_func_new <- function(var) {
   var <- na_if(var, ".A")
   var <- na_if(var, ".N")
