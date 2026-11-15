@@ -1,3 +1,12 @@
+cif_at_time <- function(df, time_point) {
+  idx <- which(df$time >= time_point)
+  if (length(idx) == 0) NA_real_ else df$cif[idx[1]]
+}
+cif.overall = cif_at_time(df_over, time_point),
+cif.Male    = cif_at_time(df_male, time_point),
+cif.Female  = cif_at_time(df_female, time_point),
+
+
 df_over   <- subset(plot_data, group == "Overall")
 df_male   <- subset(plot_data, group == "Male")
 df_female <- subset(plot_data, group == "Female")
