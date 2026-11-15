@@ -15,6 +15,366 @@ time_to_event_comprisk <- function(data, event) {
         TRUE ~ 0
       ),
 
+      !!event_col := factor(
+        .data[[event_col]],
+        levels = c(0, 1, 2),
+        labels = c("Censored", "Event", "Death")
+      ),
+
+      !!years_col := as.numeric(
+        case_when(
+          .data[[tmp_col]] == 1 ~ .data[[ind_col]] - baseline,
+          TRUE ~ cens - baseline
+        )
+      ) / 365.25
+    ) %>%
+    select(-all_of(tmp_col))
+}
+
+
+
+
+library(survival)
+library(survey)
+library(msm)
+library(dplyr)
+
+# Bounded complementary log-log link
+bcloglog <- function(edge = 0.5) {
+  link <- make.link("cloglog")
+  link$linkfun <- function(mu) {
+    x <- pmax(edge, pmin(mu, 1 - edge))
+    log(-log(1 - x))
+  }
+  link$name <- "bcloglog"
+  link
+}
+
+# Format estimates and 95% CI
+fmt_ci <- function(est, se) {
+  sprintf("%.2f (%.2f - %.2f)",
+          100 * est,
+          100 * (est - 1.96 * se),
+          100 * (est + 1.96 * se))
+}
+
+# First age where CIF exceeds threshold
+first_age_above <- function(df, threshold) {
+  ages <- df$time[df$cif > threshold]
+  if (length(ages) == 0) NA_real_ else min(ages)
+}
+
+
+calculate_lifetime_risk <- function(data,
+                                    entry_age,
+                                    exit_age,
+                                    status,
+                                    sex = sex,
+                                    id = LopNr,
+                                    time_point = 95,
+                                    event = "Event") {
+
+  # Prepare data
+  analysis_data <- data %>%
+    mutate(
+      .entry = {{ entry_age }},
+      .exit = {{ exit_age }},
+      .status = {{ status }},
+      .sex = factor({{ sex }}),
+      .id = {{ id }}
+    )
+
+  # Status: 0 = censored, 1 = event, 2 = competing death
+  analysis_data$.status <- factor(
+    analysis_data$.status,
+    levels = c(0, 1, 2),
+    labels = c("Censored", "Event", "Death")
+  )
+
+  # Aalen-Johansen CIF
+  fit_overall <- survfit(
+    Surv(.entry, .exit, .status) ~ 1,
+    data = analysis_data,
+    id = .id
+  )
+
+  fit_sex <- survfit(
+    Surv(.entry, .exit, .status) ~ .sex,
+    data = analysis_data,
+    id = .id
+  )
+
+  # Pseudo-observations
+  pseudo_obs <- pseudo(
+    fit_overall,
+    times = time_point,
+    data.frame = TRUE
+  )
+
+  pdata <- pseudo_obs %>%
+    filter(state == event) %>%
+    left_join(
+      analysis_data %>% select(.id, .sex),
+      by = c("id" = ".id")
+    )
+
+  # Robust regression
+  mdesign <- svydesign(
+    id = ~id,
+    data = pdata
+  )
+
+  fit_by_sex <- svyglm(
+    pseudo ~ .sex,
+    design = mdesign,
+    family = gaussian(link = bcloglog())
+  )
+
+  fit_overall_glm <- svyglm(
+    pseudo ~ 1,
+    design = mdesign,
+    family = gaussian(link = bcloglog())
+  )
+
+  # Lifetime risks and delta-method SE
+  coefs <- coef(fit_by_sex)
+  b0 <- unname(coefs[1])
+  b1 <- unname(coefs[2])
+  vbeta <- vcov(fit_by_sex)
+
+  ltr_ref <- 1 - exp(-exp(b0))
+  ltr_other <- 1 - exp(-exp(b0 + b1))
+  ltr_diff <- ltr_other - ltr_ref
+
+  se_ref <- deltamethod(
+    ~ 1 - exp(-exp(x1)),
+    c(b0, b1), vbeta
+  )
+
+  se_other <- deltamethod(
+    ~ 1 - exp(-exp(x1 + x2)),
+    c(b0, b1), vbeta
+  )
+
+  se_diff <- deltamethod(
+    ~ (1 - exp(-exp(x1 + x2))) -
+      (1 - exp(-exp(x1))),
+    c(b0, b1), vbeta
+  )
+
+  b0_over <- unname(coef(fit_overall_glm)[1])
+
+  ltr_over <- 1 - exp(-exp(b0_over))
+
+  se_over <- deltamethod(
+    ~ 1 - exp(-exp(x1)),
+    b0_over,
+    vcov(fit_overall_glm)
+  )
+
+  # CIF curves
+  event_col_overall <- which(fit_overall$states == event)
+  event_col_sex <- which(fit_sex$states == event)
+
+  sex_labels <- rep(
+    sub("^\\.sex=", "", names(fit_sex$strata)),
+    fit_sex$strata
+  )
+
+  plot_data <- bind_rows(
+    data.frame(
+      time = fit_overall$time,
+      cif = fit_overall$pstate[, event_col_overall],
+      group = "Overall"
+    ),
+    data.frame(
+      time = fit_sex$time,
+      cif = fit_sex$pstate[, event_col_sex],
+      group = sex_labels
+    )
+  )
+
+  # Results
+  res <- data.frame(
+    time_point = time_point,
+    ltr.overall = fmt_ci(ltr_over, se_over),
+    ltr.ref = fmt_ci(ltr_ref, se_ref),
+    ltr.other = fmt_ci(ltr_other, se_other),
+    ltr.diff = fmt_ci(ltr_diff, se_diff),
+    pval = summary(fit_by_sex)$coefficients[2, 4]
+  )
+
+  return(list(
+    results = res,
+    plot_data = plot_data,
+    fit_overall = fit_overall,
+    fit_sex = fit_sex,
+    fit_by_sex = fit_by_sex,
+    pseudo_obs = pdata
+  ))
+}
+
+
+################################################################################
+  ##  Cumulative incidence (Aalen-Johansen), age as time scale
+  ################################################################################
+
+
+  fit_overall <- survfit(Surv(entry_age, alder, status) ~ 1,
+                         data = analysis_data, id = lopnr)
+  message("Overall CIF calculated")
+
+  fit_sex <- survfit(Surv(entry_age, alder, status) ~ Kon,
+                     data = analysis_data, id = lopnr)
+  message("CIF stratified by sex calculated")
+
+  ################################################################################
+  ## Pseudo-observation regression for the CIF at exit_age
+  ################################################################################
+  
+  pseudo_obs <- pseudo(fit_overall, times = exit_age, data.frame = TRUE)
+  message("Pseudo-observations created")
+
+  pdata <- merge(analysis_data,
+                 subset(pseudo_obs, state == "Event"),
+                 by = "lopnr") %>%
+    select(lopnr, status, entry_age, alder, time, state, pseudo, Kon)
+
+  # One cluster per person gives robust (sandwich) standard errors
+  mdesign <- svydesign(data = pdata, 
+                       id = ~lopnr,
+                       weights = NULL,
+                       variables = ~ . - lopnr)
+
+  message("Fitting models ...")
+  fit_by_sex  <- svyglm(pseudo ~ Kon,
+                        design = mdesign,
+                        family = gaussian(link = bcloglog()))
+  
+  fit_overall_glm <- svyglm(pseudo ~ 1, 
+                            design = mdesign,
+                            family = gaussian(link = bcloglog()))
+
+  ################################################################################
+  ## Lifetime risks with delta-method confidence intervals
+  ## With a cloglog link, risk = 1 - exp(-exp(linear predictor)).
+  ################################################################################
+  
+  message("Calculating results")
+
+  # By sex: 
+  #     b0 = intercept (males),
+  #     b1 = female vs male
+  
+  coefs <- coef(fit_by_sex)
+  b0    <- unname(coefs[1])
+  b1    <- unname(coefs[2])
+  vbeta <- vcov(fit_by_sex)
+
+  ltr_male   <- 1 - exp(-exp(b0))
+  ltr_female <- 1 - exp(-exp(b0 + b1))
+  ltr_diff   <- ltr_female - ltr_male
+
+  se_male   <- deltamethod(~ 1 - exp(-exp(x1)),
+                           c(b0, b1), vbeta)
+  se_female <- deltamethod(~ 1 - exp(-exp(x1 + x2)),
+                           c(b0, b1), vbeta)
+  se_diff   <- deltamethod(~ (1 - exp(-exp(x1 + x2))) - (1 - exp(-exp(x1))),
+                           c(b0, b1), vbeta)
+
+  # Overall
+  b0_over  <- unname(coef(fit_overall_glm)[1])
+  ltr_over <- 1 - exp(-exp(b0_over))
+  se_over  <- deltamethod(~ 1 - exp(-exp(x1)), b0_over, vcov(fit_overall_glm))
+
+  ################################################################################
+  ##  CIF curves for plotting
+  ################################################################################
+
+  event_col_overall <- which(fit_overall$states == "Event")
+  event_col_sex     <- which(fit_sex$states == "Event")
+  sex_labels <- rep(sub("^Kon=", "", names(fit_sex$strata)), fit_sex$strata)
+
+  plot_data <- bind_rows(
+    data.frame(time  = fit_overall$time,
+               cif   = fit_overall$pstate[, event_col_overall],
+               group = "Overall"),
+    data.frame(time  = fit_sex$time,
+               cif   = fit_sex$pstate[, event_col_sex],
+               group = sex_labels)
+  )
+
+  df_over   <- subset(plot_data, group == "Overall")
+  df_male   <- subset(plot_data, group == "Male")
+  df_female <- subset(plot_data, group == "Female")
+
+  ################################################################################
+  ## Save results
+  ################################################################################
+
+  res <- data.frame(
+    Disease       = Disease,
+    ltr.overall   = fmt_ci(ltr_over,   se_over),
+    ltr.Male      = fmt_ci(ltr_male,   se_male),
+    ltr.Female    = fmt_ci(ltr_female, se_female),
+    ltr.diff      = fmt_ci(ltr_diff,   se_diff),
+    pval          = summary(fit_by_sex)$coefficients[2, 4],
+    first.overall = first_age_above(df_over,   0.01),
+    ten.overall   = first_age_above(df_over,   0.10),
+    first.Male    = first_age_above(df_male,   0.01),
+    ten.Male      = first_age_above(df_male,   0.10),
+    first.Female  = first_age_above(df_female, 0.01),
+    ten.Female    = first_age_above(df_female, 0.10)
+  )
+
+  if (saving) {
+    res_file  <- paste0(paths$out_dir, Disease, "_Lifetime_risk_",
+                        start_year, ".csv")
+    plot_file <- paste0(paths$out_dir, "plot_data/", Disease,
+                        "_Lifetime_risk_plot_", start_year, ".csv")
+    write.csv(res,       res_file,  row.names = FALSE)
+    write.csv(plot_data, plot_file, row.names = FALSE)
+    message("Results saved to ", res_file)
+    message("Plot data saved to ", plot_file)
+  }
+
+  return(res)
+}
+
+
+################################################################################
+## Example of how the function is used
+################################################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+time_to_event_comprisk <- function(data, event) {
+
+  tmp_col   <- paste0(event, "_tmp")
+  ind_col   <- paste0("EVENTDATE_", event)
+  event_col <- paste0(event, "comprisk")
+  years_col <- paste0(event, "compriskyrs")
+
+  data %>%
+    mutate(
+      !!tmp_col := .data[[event]],
+
+      !!event_col := case_when(
+        .data[[tmp_col]] == 1 & .data[[ind_col]] <= cens ~ 1,
+        !is.na(deathdt) & deathdt <= cens ~ 2,
+        TRUE ~ 0
+      ),
+
       !!years_col := as.numeric(
         case_when(
           .data[[event_col]] == 1 ~ .data[[ind_col]] - baseline,
