@@ -1,3 +1,48 @@
+# CIED
+CIED_risk <- calculate_lifetime_risk(
+  dat = adsl,
+  entry_age = age,
+  exit_age = CIEDageyrs,
+  status = CIEDcomprisk,
+  sex = sex,
+  id = LopNr,
+  time_point = 95
+)
+
+# PM
+PM_risk <- calculate_lifetime_risk(
+  dat = adsl,
+  entry_age = age,
+  exit_age = PMageyrs,
+  status = PMcomprisk,
+  sex = sex,
+  id = LopNr,
+  time_point = 95
+)
+
+# ICD
+ICD_risk <- calculate_lifetime_risk(
+  dat = adsl,
+  entry_age = age,
+  exit_age = ICDageyrs,
+  status = ICDcomprisk,
+  sex = sex,
+  id = LopNr,
+  time_point = 95
+)
+
+# CRT
+CRT_risk <- calculate_lifetime_risk(
+  dat = adsl,
+  entry_age = age,
+  exit_age = CRTageyrs,
+  status = CRTcomprisk,
+  sex = sex,
+  id = LopNr,
+  time_point = 95
+)
+
+
 cif_at_time <- function(df, time_point) {
   idx <- which(df$time >= time_point)
   if (length(idx) == 0) NA_real_ else df$cif[idx[1]]
