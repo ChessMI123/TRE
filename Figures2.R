@@ -1,4 +1,13 @@
-    
+
+  # By sex: 
+  #     b0 = intercept (males),
+  #     b1 = female vs male
+mdesign <- svydesign(
+  data = pdata,
+  id = ~.id,
+  weights = NULL,
+  variables = ~. - .id
+)
   # Ages are in whole years. 
   # survfit() requires exit > entry, so people
   # who enter and exit at the same age are given one year of follow-up.
