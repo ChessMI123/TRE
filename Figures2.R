@@ -1,3 +1,16 @@
+    
+  # Ages are in whole years. 
+  # survfit() requires exit > entry, so people
+  # who enter and exit at the same age are given one year of follow-up.
+
+analysis_data <- analysis_data %>%
+  mutate(
+    .exit = if_else(.entry == .exit, .entry + 1/365.25, .exit)
+  )
+
+
+
+
 time_to_event_comprisk <- function(data, event) {
 
   tmp_col   <- paste0(event, "_tmp")
