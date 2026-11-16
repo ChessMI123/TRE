@@ -1,3 +1,8 @@
+yes_no <- function(x) {
+  factor(x, levels = 0:1, labels = c("No", "Yes"))
+}
+
+
 # CIED
 CIED_risk <- calculate_lifetime_risk(
   dat = adsl,
