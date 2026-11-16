@@ -1,3 +1,14 @@
+dat        <- adsl
+entry_age  <- rlang::quo(age)
+exit_age   <- rlang::quo(CRTageyrs)
+status     <- rlang::quo(CRTcomprisk)
+sex        <- rlang::quo(sex)
+id         <- rlang::quo(LopNr)
+time_point <- 95
+saving     <- FALSE
+
+
+
 # Arguments
 dat        <- adsl
 entry_age  <- "age"
