@@ -1,3 +1,48 @@
+baseline_medication <- function(data, Medication, uppbound = 0, lowbound = -Inf) {
+
+  message(Medication)
+  file_path <- file.path(der,paste0("FirstTimePrescription_", Medication, ".parquet"))
+
+  if (!file.exists(file_path)) {
+    message("File not found: ", file_path)
+    return(data)
+  }
+
+  tmp <- read_parquet(file_path) %>% select(LopNr, EDATUM)
+  col_name <- paste0("bl_", Medication)
+  if (col_name %in% colnames(data)) {data <- data %>% select(-all_of(col_name))}
+
+  df_adsl <- data %>% left_join(tmp, by = "LopNr")
+
+  df_adsl$days <- as.numeric(as.Date(df_adsl$EDATUM) - as.Date(df_adsl$baseline))
+
+  df_temporary <- df_adsl %>% filter(days <= uppbound, days >= lowbound)
+  df_for_join <- data.frame(LopNr = unique(df_temporary$LopNr)) %>%
+    mutate(!!col_name := 1)
+
+  data <- data %>% left_join(df_for_join, by = "LopNr") %>%
+    mutate(!!col_name := case_when(indexdtm <= baseline & is.na(.data[[col_name]]) ~ .data[[Medication]],
+                                  TRUE ~ .data[[col_name]])) %>% # Check if data is available in Riksvikt
+    select(-all_of(Medication))
+
+  data[col_name][is.na(data[col_name])] <- 0
+  data[[col_name]] <- ynf(data[[col_name]])
+
+  return(data)
+}
+
+adsl <- adsl %>%
+  baseline_medication("BETA_BLOCKER") %>%
+  baseline_medication("RAS_inhibitors") %>%
+  baseline_medication("MRA") %>%
+  baseline_medication("ARNI") %>%
+  baseline_medication("SGLT2")
+
+
+
+
+
+
 adsl <- adsl %>%
   baseline_disease("MI") %>%
   baseline_disease("angina") %>%
