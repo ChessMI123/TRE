@@ -1,3 +1,34 @@
+baseline_disease <- function(data, Other_diseases, uppbound = 0, lowbound = -Inf) {
+
+  message(Other_diseases)
+  file_path <- file.path(der, paste0("FirstTimeOutcome_", Other_diseases, ".parquet"))
+
+  if (!file.exists(file_path)){
+    message("File not found: ", file_path)
+    return(data)
+  }
+
+  tmp <- read_parquet(file_path) %>% select(LopNr, INDATUM)
+  col_name <- paste0("bl_", Other_diseases)
+  if (col_name %in% colnames(data)) {data <- data %>% select(-all_of(col_name))}
+
+  df_adsl <- data %>% left_join(tmp, by="LopNr")
+
+  df_adsl$days <- as.numeric(as.Date(df_adsl$INDATUM) - as.Date(df_adsl$baseline))
+
+  df_temporary <- df_adsl %>% filter(days<=uppbound, days>=lowbound)
+  df_for_join <- data.frame(LopNr = unique(df_temporary$LopNr)) %>%
+    mutate(!!sym(col_name) := 1)
+
+  data <- data %>% left_join(df_for_join, by= "LopNr")
+
+  data[col_name][is.na(data[col_name])] <- 0
+  data[[col_name]] <- ynf(data[[col_name]])
+
+  return(data)
+}
+
+
 attr(adsl$bl_BETA_BLOCKER, "label")    <- "Beta-blockers"
 attr(adsl$bl_RAS_inhibitors, "label")  <- "RAS inhibitors"
 attr(adsl$bl_MRA, "label")             <- "Mineralocorticoid receptor antagonists"
