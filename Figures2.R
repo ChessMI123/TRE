@@ -1,3 +1,53 @@
+# Arguments
+dat        <- adsl
+entry_age  <- "age"
+exit_age   <- "CRTageyrs"
+status     <- "CRTcomprisk"
+sex        <- "sex"
+id         <- "LopNr"
+time_point <- 95
+saving     <- FALSE
+
+# Prepare data
+analysis_data <- dat %>%
+  mutate(
+    .entry  = .data[[entry_age]],
+    .exit   = .data[[exit_age]],
+    .status = .data[[status]],
+    .sex    = factor(.data[[sex]]),
+    .id     = .data[[id]]
+  )
+
+# Ensure exit > entry
+analysis_data <- analysis_data %>%
+  mutate(
+    .exit = if_else(.entry == .exit, .entry + 1/365.25, .exit)
+  )
+
+# Overall CIF
+fit_overall <- survfit(
+  Surv(.entry, .exit, .status) ~ 1,
+  data = analysis_data,
+  id = .id
+)
+
+# CIF by sex
+fit_sex <- survfit(
+  Surv(.entry, .exit, .status) ~ .sex,
+  data = analysis_data,
+  id = .id
+)
+
+# Pseudo-observations
+pseudo_obs <- pseudo(
+  fit_overall,
+  times = time_point,
+  data.frame = TRUE
+)
+
+
+
+
 baseline_medication <- function(data, Medication, uppbound = 0, lowbound = -Inf) {
 
   message(Medication)
