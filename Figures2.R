@@ -1,3 +1,20 @@
+# Results
+res <- data.frame(
+  Outcome     = sub("comprisk$", "", rlang::as_name(rlang::ensym(status))),
+  time_point  = time_point,
+  ltr.overall = fmt_ci(ltr_over, se_over),
+  ltr.Male    = fmt_ci(ltr_male, se_male),
+  ltr.Female  = fmt_ci(ltr_female, se_female),
+  ltr.diff    = fmt_ci(ltr_diff, se_diff),
+  pval        = pval_func(summary(fit_by_sex)$coefficients[2, 4]),
+  cif.overall = cif_at_time(df_over, time_point),
+  cif.Male    = cif_at_time(df_male, time_point),
+  cif.Female  = cif_at_time(df_female, time_point)
+) %>%
+  rename_with(~ paste0(.x, "_", time_point), -c(Outcome, time_point))
+
+
+
 # Append results
 append_name <- rlang::as_string(rlang::ensym(APPEND_DATA))
 
