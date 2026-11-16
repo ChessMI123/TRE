@@ -1,3 +1,71 @@
+# Calculate lifetime risks at ages 75, 85 and 95
+for (tp in c(75, 85, 95)) {
+
+  # CIED
+  assign(paste0("CIED_risk_", tp), calculate_lifetime_risk(
+    data = adsl,
+    entry_age = age,
+    exit_age = CIEDageyrs,
+    status = CIEDcomprisk,
+    sex = sex,
+    id = LopNr,
+    time_point = tp
+  ))
+
+  # PM
+  assign(paste0("PM_risk_", tp), calculate_lifetime_risk(
+    data = adsl,
+    entry_age = age,
+    exit_age = PMageyrs,
+    status = PMcomprisk,
+    sex = sex,
+    id = LopNr,
+    time_point = tp
+  ))
+
+  # ICD
+  assign(paste0("ICD_risk_", tp), calculate_lifetime_risk(
+    data = adsl,
+    entry_age = age,
+    exit_age = ICDageyrs,
+    status = ICDcomprisk,
+    sex = sex,
+    id = LopNr,
+    time_point = tp
+  ))
+
+  # CRT
+  assign(paste0("CRT_risk_", tp), calculate_lifetime_risk(
+    data = adsl,
+    entry_age = age,
+    exit_age = CRTageyrs,
+    status = CRTcomprisk,
+    sex = sex,
+    id = LopNr,
+    time_point = tp
+  ))
+}
+
+# Combine results
+LIFETIME_Risk <- dplyr::bind_rows(
+  lapply(c("CIED", "PM", "ICD", "CRT"), function(name) {
+
+    dplyr::bind_cols(
+      get(paste0(name, "_risk_75")),
+      get(paste0(name, "_risk_85")),
+      get(paste0(name, "_risk_95"))
+    ) %>%
+      dplyr::mutate(Outcome = name, .before = 1)
+
+  })
+)
+
+View(LIFETIME_Risk)
+
+
+
+
+
 dat        <- adsl
 entry_age  <- rlang::quo(age)
 exit_age   <- rlang::quo(CRTageyrs)
