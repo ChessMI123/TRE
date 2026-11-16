@@ -1,3 +1,31 @@
+if (!is.null(APPEND_DATA)) {
+
+  append_name <- rlang::as_string(rlang::ensym(APPEND_DATA))
+
+  previous <- if (exists(append_name, envir = .GlobalEnv)) {
+    get(append_name, envir = .GlobalEnv)
+  } else {
+    NULL
+  }
+
+  assign(
+    append_name,
+    dplyr::bind_rows(previous, res),
+    envir = .GlobalEnv
+  )
+}
+
+return(res)
+
+
+
+for (tp in c(75, 85, 95)) {
+
+  append_name <- paste0("Liferisk_", tp)
+  assign(append_name, NULL, envir = .GlobalEnv)
+
+
+
 # Calculate lifetime risks at ages 75, 85 and 95
 for (tp in c(75, 85, 95)) {
 
