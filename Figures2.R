@@ -1,3 +1,27 @@
+# Append results
+append_name <- rlang::as_string(rlang::ensym(APPEND_DATA))
+
+if (append_name != "NULL") {
+
+  if (exists(append_name, envir = .GlobalEnv)) {
+
+    assign(
+      append_name,
+      dplyr::bind_rows(get(append_name, envir = .GlobalEnv), res),
+      envir = .GlobalEnv
+    )
+
+  } else {
+
+    assign(append_name, res, envir = .GlobalEnv)
+
+  }
+}
+
+return(res)
+
+
+
 if (!is.null(APPEND_DATA)) {
 
   append_name <- rlang::as_string(rlang::ensym(APPEND_DATA))
