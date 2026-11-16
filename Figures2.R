@@ -1,3 +1,19 @@
+adsl <- adsl %>%
+  baseline_disease("MI") %>%
+  baseline_disease("angina") %>%
+  baseline_disease("valvular") %>%
+  baseline_disease("card_arrest") %>%
+  baseline_disease("AFib") %>%
+  baseline_disease("stroke") %>%
+  baseline_disease("PAD") %>%
+  baseline_disease("Hypertension") %>%
+  baseline_disease("Diabetes") %>%
+  baseline_disease("Conduct_dis") %>%
+  baseline_disease("VTE")
+
+
+
+
 baseline_disease <- function(data, Other_diseases, uppbound = 0, lowbound = -Inf) {
 
   message(Other_diseases)
