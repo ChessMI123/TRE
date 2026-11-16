@@ -1,3 +1,11 @@
+attr(adsl$bl_BETA_BLOCKER, "label")    <- "Beta-blockers"
+attr(adsl$bl_RAS_inhibitors, "label")  <- "RAS inhibitors"
+attr(adsl$bl_MRA, "label")             <- "Mineralocorticoid receptor antagonists"
+attr(adsl$bl_ARNI, "label")            <- "Angiotensin receptor-neprilysin inhibitors"
+attr(adsl$bl_SGLT2, "label")           <- "SGLT2 inhibitors"
+
+
+
 yes_no <- function(x) {
   factor(x, levels = 0:1, labels = c("No", "Yes"))
 }
