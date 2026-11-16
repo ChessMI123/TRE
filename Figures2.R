@@ -1,3 +1,10 @@
+
+# Combine time points horizontally
+LIFETIME_Risk <- Liferisk_75 %>%
+  select(-time_point) %>%
+  left_join(Liferisk_85 %>% select(-time_point), by = "Outcome") %>%
+  left_join(Liferisk_95 %>% select(-time_point), by = "Outcome")
+
 # Results
 res <- data.frame(
   Outcome     = sub("comprisk$", "", rlang::as_name(rlang::ensym(status))),
