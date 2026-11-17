@@ -9,3 +9,6 @@ proc sql;
            ) then 1 else 0 end as B
     from der.adsl_1 as a;
 quit;
+df %>%
+  filter(if_any(c(hdia, DIA1, DIA2, DIA3, DIA4),
+                ~ substr(., 4, 4) == "A"))
