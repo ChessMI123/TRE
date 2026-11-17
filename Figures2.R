@@ -1,4 +1,4 @@
-df %>%
+ddf %>%
   filter(if_any(c(hdia, DIA1, DIA2, DIA3, DIA4), ~ grepl("A", .)))
 # Combine time points horizontally
 LIFETIME_Risk <- Liferisk_75 %>%
