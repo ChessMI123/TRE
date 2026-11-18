@@ -1,4 +1,53 @@
 
+
+
+### Create empty data frames to fill with values
+Pop <- open_dataset("/safe/data/APNC/SCARP-HFDEVICE/Data/Derived/FirstTimeOutcome_HF.parquet") %>% collect() %>% select(LopNr)
+lisa_pop <- data.frame()
+
+for (i in 2009:2022) {
+  lisa<- open_dataset(paste0("/safe/data/SCARP/DATA_2024/PARQUET/ar_lev_lisa_", i, ".parquet")) %>% collect()
+  colnames(lisa)<- tolower(colnames(lisa))
+  if (i>=2005 & i<2019){
+    lisa<- lisa %>% select(lopnr, dispinkfam04, dispink04, sun2000niva_old) %>% rename("income_ind"="dispink04" , "education_level"="sun2000niva_old") %>% rename(LopNr=lopnr)
+  } else if (i >=2019 ){
+    lisa<- lisa %>% select(lopnr, dispinkfam04, dispink04, sun2020niva_old) %>% rename("income_ind"="dispink04" , "education_level"="sun2020niva_old") %>% rename(LopNr=lopnr)
+  }
+
+  lisa_i<- Pop %>% left_join(lisa, by ="LopNr") %>% mutate(lisayr=i)
+  lisa_pop <- rbind(lisa_pop, lisa_i)
+
+  rm(lisa_i, lisa)
+  print(paste("year", i, "is done"))# print to see progress
+}
+
+# Make education level numeric and remove the stars
+lisa_pop <- lisa_pop %>% mutate(education_level = as.numeric(na_if(education_level, "*")))
+
+lisa_pop_LOCF<- lisa_pop %>%
+  group_by(LopNr) %>%
+  fill(education_level, income_ind, .direction="down") %>%
+  ungroup() %>%
+  arrange(LopNr, lisayr) %>%
+  rename("income"="income_ind", "education_level" = "education_level") %>%
+  select(LopNr,income,education_level,lisayr)
+
+KPI_2009_2022 <- data.frame(lisayr = 2009:2022,
+                           KPI = c(299.66, 303.46, 311.43, 314.20, 314.06, 313.49, 313.35, 316.43, 322.11, 328.40, 334.26, 335.92, 343.19, 371.91)) %>%
+  mutate(KPI_factor = 299.66 / KPI)
+
+lisa_pop_LOCF <- lisa_pop_LOCF %>%
+  left_join(KPI_2009_2022, by="lisayr") %>%
+  mutate(income_KPI_adj=round(income*KPI_factor))
+
+lisa_pop_LOCF %>% write_parquet("/safe/data/APNC/SCARP-HFDEVICE/Data/Derived/LISA.parquet")
+
+
+
+
+
+
+
 ######################################
 #####  Specific CVDs             #######
 ######################################
