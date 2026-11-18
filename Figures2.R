@@ -1,3 +1,80 @@
+
+######################################
+#####  Specific CVDs             #######
+######################################
+# CV="CV"
+# ICD_string="^A28|^I50|^I110|^I130|^I132"
+
+spec_cv_fun<- function(CV="CV", ICD_string="^XXX"){
+
+  X_SV<- parquet_get_dia("SV",Name=CV, ICD_string = ICD_string , position = 2,Year_min = 1970,Year_max = 2025)
+  X_OV<- parquet_get_dia("OV",Name=CV, ICD_string = ICD_string, position = 2,Year_min = 1987,Year_max = 2025)
+
+  X_SV<- X_SV %>% select(-ALDER,-KON)
+#  colnames(X_SV)==colnames(X_OV) #kontroll
+  X<- rbind(X_SV, X_OV)
+  #Only need first occurence
+  X<- X %>% group_by(LopNr) %>% arrange(INDATUM) %>% slice(1) %>% select(LopNr, INDATUM, Diagnose)
+
+  X[, paste0("INDATUM_", CV)]<- X$INDATUM # keep both with same name for all data sets and a specific date name for now- not sure how to
+  X[, paste0(CV)]<- 1 ## All have had an event, filtered data
+  #excl_downs_syndome<- CCS_kohort %>% inner_join(y = excl_downs_syndome, by = "LopNr") #161 ## TA BORT DETTA! BEHÖVS ÄVEN FÖR KONTROLLER
+
+  X %>% write_parquet(paste0("/safe/data/APNC/SCARLET morbidity/Data/Derived/FirstTimeOutcome_",CV,".parquet"))
+
+  rm(X_OV, X_SV, X)
+
+}
+
+#Testa
+spec_cv_fun(CV="HF", ICD_string = "^A28|^I50|^I110|^I130|^I132") #heart failure
+spec_cv_fun(CV="MI", ICD_string = "^410|^I21")# myocardial infarction
+spec_cv_fun(CV="angina", ICD_string = "^411B|^413|^I20") #angina pectoris
+spec_cv_fun(CV="valvular", ICD_string = "^394|^395|^396|^397|^424|^I05|^I06|^I07|^I08|^I091|^I34|^I35|^I36|^I37|^I38") #valvular disease
+spec_cv_fun(CV="card_arrest", ICD_string = "^427E|^I427F|^I46") #cardiac arrest
+spec_cv_fun(CV="AFib", ICD_string = "^427D|^I48") #atrial fibrillation of flutter
+## INSERT CONDUCTION DISEASE WHEN DONE!
+spec_cv_fun(CV="stroke", ICD_string = "^430|^431|^434|^436|^I60|^I61|^I63") #stroke
+spec_cv_fun(CV="PAD", ICD_string = "^440C|^444C|^I702|^I739") #pad
+spec_cv_fun(CV="aortic", ICD_string = "^441A|^441B|^441D|^I710|^I711|^I713|^I715") #aortic disease
+spec_cv_fun(CV="VTE", ICD_string = "^415B|^416W|^451|^I26|^I80") #venous thromboembolism
+
+spec_cv_fun(CV="CM", ICD_string = "^425|^I42|^I43") #cardiomyopathy
+spec_cv_fun(CV="HCM", ICD_string = "^425B|^I421|^I422") #cardiomyopathy: hypertropic
+spec_cv_fun(CV="DCM", ICD_string = "^425E|^425F|^I420|^I426") #cardiomyopathy: dilated
+spec_cv_fun(CV="RCM", ICD_string = "^I425") #cardiomyopathy: restrictive
+spec_cv_fun(CV="OCM", ICD_string = "^425A|^425D|^425E|^425H|^425X|^425W|^I423|^I424|^I427|^I428|^I429|^I430|^I431|^I432|^I438|^O903") #cardiomyopathy: other
+spec_cv_fun(CV="FCM", ICD_string = "^I427") #cardiomyopathy: by farmacological agent
+
+spec_cv_fun(CV="IHD", ICD_string = "^391A|^393|^420|^423|^I30|^I31|^I32|^I010|^391C|^422|^I40|^I41|^I012|^391B|^421|^I011|^I33|^I398") #inflammatory heart disease
+spec_cv_fun(CV="IHD_pericard", ICD_string = "^391A|^393|^420|^423|^I30|^I31|^I32|^I010") #pericarditis
+spec_cv_fun(CV="IHD_myocard", ICD_string = "^391C|^422|^I40|^I41|^I012") #myocarditis
+spec_cv_fun(CV="IHD_endocard", ICD_string = "^391B|^421|^I011|^I33|^I398") #endocarditis
+
+spec_cv_fun(CV="Hypertension", ICD_string="^402|^I10|^I11|^I12|^I13|^I14|^I15") #Hypertension
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 library(haven)
 library(arrow)
 library(dplyr)
