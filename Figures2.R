@@ -1,3 +1,18 @@
+library(arrow)
+library(dplyr)
+
+path <- "your/path"
+
+dat <- bind_rows(
+  open_dataset(file.path(path, "ut_uttag1_r_par_sv_34759_2025.parquet")) %>% collect(),
+  open_dataset(file.path(path, "ut_uttag2_r_par_sv_34759_2025.parquet")) %>% collect()
+)
+
+write_parquet(dat, file.path(path, "ut_combined.parquet"))
+
+
+
+
 proc sql;
     create table data as
     select a.*,
