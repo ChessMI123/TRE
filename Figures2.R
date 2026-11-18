@@ -1,3 +1,19 @@
+library(haven)
+library(arrow)
+library(dplyr)
+
+path_0 <- "/safe/data/Original data 2026/PARQUET"
+
+dat <- bind_rows(
+  read_sas(file.path(path_0, "ut_r_par_ov_ut1_34759_2025.sas7bdat")),
+  read_sas(file.path(path_0, "ut_r_par_ov_ut2_34759_2025.sas7bdat"))
+)
+
+write_parquet(dat, file.path(path_0, "ut_r_par_ov_34759_2025.parquet"))
+
+
+
+
 library(arrow)
 library(dplyr)
 
