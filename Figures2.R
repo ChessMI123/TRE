@@ -1,3 +1,17 @@
+
+result <- purrr::map(
+  c("PM_td", "ICD_td", "CRT_td", "CIED_td"),
+  ~ td_cox_table(
+      data = td_dat,
+      tdc = .x,
+      outcome = "death_event",
+      adj = c("sex", "Birth_region")
+    )
+) %>%
+  bind_rows()
+
+
+
 # Formats
 pval_func <- function(pval) {
   case_when(
