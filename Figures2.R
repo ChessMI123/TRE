@@ -1,5 +1,126 @@
 
 
+
+td_cox_table <- function(
+    data,
+    tdc,
+    outcome,
+    adj = NULL,
+    tstart = "tstart",
+    tstop = "tstop"
+) {
+  
+  # Descriptive statistics
+  desc <- data %>%
+    group_by(.data[[tdc]]) %>%
+    summarise(
+      events = sum(.data[[outcome]], na.rm = TRUE),
+      PY = sum(person_time),
+      IR = 100 * events / PY,
+      .groups = "drop"
+    )
+  
+  # Helper function for Cox regression
+  get_cox <- function(vars) {
+    
+    formula <- reformulate(
+      vars,
+      response = paste0(
+        "Surv(", tstart, ", ", tstop, ", ", outcome, ")"
+      )
+    )
+    
+    coxph(formula, data = data) %>%
+      broom::tidy(exponentiate = TRUE, conf.int = TRUE) %>%
+      filter(term == tdc)
+  }
+  
+  # Unadjusted Cox regression
+  s <- get_cox(tdc)
+  
+  HR <- fmt_ci(s$estimate, s$conf.low, s$conf.high)
+  p <- pval_func(s$p.value)
+  
+  # Combine results
+  idx <- match(0:1, desc[[tdc]])
+  
+  result <- data.frame(
+    outcome = outcome,
+    group = paste(tdc, c("No", "Yes")),
+    events = desc$events[idx],
+    PY = round(desc$PY[idx], 1),
+    IR = round(desc$IR[idx], 2),
+    HR = c("Reference", HR),
+    p_value = c("", p)
+  )
+  
+  # Adjusted Cox regression
+  if (!is.null(adj)) {
+    
+    s_adj <- get_cox(c(tdc, adj))
+    
+    result$HR_adj <- c(
+      "Reference",
+      fmt_ci(s_adj$estimate, s_adj$conf.low, s_adj$conf.high)
+    )
+    
+    result$p_value_adj <- c("", pval_func(s_adj$p.value))
+  }
+  
+  return(result)
+}
+
+
+
+
+
+
+
+
+td_cox_table(
+  data = td_dat,
+  tdc = "TD1",
+  outcome = "death",
+  adj = c("age", "sex")
+)
+
+
+set.seed(123)
+
+# Generate patient-level data
+adsl <- data.frame(
+  id = 1:100,
+  age = round(rnorm(100, 65, 10)),
+  sex = sample(0:1, 100, replace = TRUE),
+  deathyrs = runif(100, 1, 10),
+  death = rbinom(100, 1, 0.4),
+  TD1yrs = runif(100, 0, 10),
+  TD2yrs = runif(100, 0, 10)
+)
+
+# Create time-dependent dataset
+td_dat <- tmerge(
+  data1 = adsl, data2 = adsl, id = id,
+  tstop = deathyrs,
+  death = event(deathyrs, death)
+)
+
+td_dat <- tmerge(
+  data1 = td_dat, data2 = adsl, id = id,
+  TD1 = tdc(TD1yrs, init = 0),
+  TD2 = tdc(TD2yrs, init = 0)
+) %>%
+  select(id, tstart, tstop, death, TD1, TD2, age, sex) %>%
+  mutate(person_time = tstop - tstart)
+
+# Run time-dependent Cox regression
+result <- bind_rows(
+  td_cox_table(td_dat, "TD1", "death", adj = c("age", "sex")),
+  td_cox_table(td_dat, "TD2", "death", adj = c("age", "sex"))
+)
+
+print(result)
+
 fmt_ci <- function(est, lower, upper) {
   sprintf("%.2f (%.2f - %.2f)", est, lower, upper)
 }
