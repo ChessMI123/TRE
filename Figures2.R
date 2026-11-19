@@ -1,4 +1,17 @@
+data data;
+    set adsl(obs=10000);
+    where FAS=1;
 
+    if CIEDcomprisk = "Censored" then CIEDcomprisk_n = 0;
+    else if CIEDcomprisk = "Event" then CIEDcomprisk_n = 1;
+    else if CIEDcomprisk = "Death" then CIEDcomprisk_n = 2;
+
+    drop CIEDcomprisk;
+    rename CIEDcomprisk_n = CIEDcomprisk;
+
+    keep LopNr excl CIEDcomprisk_n CIEDcompriskyrs
+         EVENTDATE_CIED deathdt baseline cens;
+run;
 library(parquetize)
 library(arrow)
 library(dplyr)
