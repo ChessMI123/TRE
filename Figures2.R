@@ -1,3 +1,11 @@
+
+	value visitftwo 1 = "Visit 1 (Day 0)"
+	             2 = "¤{style[font_style=italic just=left]Secondary Endpoint 2}¤nVisit 2 (1 month ±14 days)"
+				 3 = "Visit 3 (3 months ±14 days)"
+				 4 = "¤{style[font_style=italic just=left]Secondary Endpoint 2}¤nVisit 4 (6 months ±14 days)";
+
+
+
 # Unadjusted time-dependent Cox regression
 fit <- coxph(
   Surv(tstart, tstop, death_event) ~ PM_td,
