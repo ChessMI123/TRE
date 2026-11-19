@@ -1,4 +1,8 @@
 
+outcome_label <- attr(data[[outcome]], "label")
+if (is.null(outcome_label)) outcome_label <- outcome
+
+
 td_dat <- tmerge(
   data1 = adsl,
   data2 = adsl,
