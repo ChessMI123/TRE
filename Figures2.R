@@ -1,3 +1,49 @@
+# All-cause mortality
+result_death <- purrr::map(
+  c("PM_td", "ICD_td", "CRT_td", "CIED_td"),
+  ~ td_cox_table(
+    data = adtte,
+    tdc = .x,
+    outcome = "death_event",
+    adj = c("sex", "age", "Birth_region")
+  )
+) %>%
+  bind_rows()
+
+
+# Cardiovascular mortality
+result_cv <- purrr::map(
+  c("PM_td", "ICD_td", "CRT_td", "CIED_td"),
+  ~ td_cox_table(
+    data = adtte,
+    tdc = .x,
+    outcome = "cv_death_event",
+    adj = c("sex", "age", "Birth_region")
+  )
+) %>%
+  bind_rows()
+
+
+# Sudden cardiac death
+result_scd <- purrr::map(
+  c("PM_td", "ICD_td", "CRT_td", "CIED_td"),
+  ~ td_cox_table(
+    data = adtte,
+    tdc = .x,
+    outcome = "scd_death_event",
+    adj = c("sex", "age", "Birth_region")
+  )
+) %>%
+  bind_rows()
+
+
+# Combine all results
+result <- bind_rows(result_death, result_cv, result_scd)
+
+
+
+
+
 
 outcome_label <- attr(data[[outcome]], "label")
 if (is.null(outcome_label)) outcome_label <- outcome
