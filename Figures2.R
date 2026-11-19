@@ -1,4 +1,28 @@
 
+# Create time-dependent dataset for heart transplantation
+adtte_trans <- tmerge(
+  data1 = adsl,
+  data2 = adsl,
+  id = LopNr,
+  tstop = censyrs,
+  trans_event = event(TRANSYRS, TRANS)
+)
+
+adtte_trans <- tmerge(
+  data1 = adtte_trans,
+  data2 = adsl,
+  id = LopNr,
+  PM_td = tdc(PMyrs, init = 0),
+  ICD_td = tdc(ICDyrs, init = 0),
+  CRT_td = tdc(CRTyrs, init = 0),
+  CIED_td = tdc(CIEDyrs, init = 0)
+) %>%
+  mutate(person_time = tstop - tstart)
+
+
+
+
+
 line "PY = Person-years; IR = Incidence rate; HR = Hazard ratio.";
 line "Incidence rates are expressed per 100 person-years. Deaths are attributed to the exposure status at the time of death. Patients may contribute person-time to both exposure groups.";
 line "Adjusted hazard ratios are adjusted for sex and age.";
