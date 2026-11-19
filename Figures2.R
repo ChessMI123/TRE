@@ -1,4 +1,43 @@
 
+library(parquetize)
+library(arrow)
+library(dplyr)
+
+path_0 <- "/safe/data/Original data 2026/Komplettering öppenvård"
+path_1 <- "/safe/data/Original data 2026/PARQUET"
+
+max_mem <- 2000
+
+files <- c(
+  "ut_r_par_ov_ut1_34759_2025",
+  "ut_r_par_ov_ut2_34759_2025"
+)
+
+# Step 1: Convert SAS files to Parquet
+for (file in files) {
+
+  table_to_parquet(
+    path_to_file = file.path(path_0, paste0(file, ".sas7bdat")),
+    path_to_parquet = file.path(path_1, paste0(file, ".parquet")),
+    max_memory = max_mem
+  )
+
+}
+
+# Step 2: Combine Parquet files
+dat <- bind_rows(
+  open_dataset(file.path(path_1, paste0(files[1], ".parquet"))) %>% collect(),
+  open_dataset(file.path(path_1, paste0(files[2], ".parquet"))) %>% collect()
+)
+
+# Step 3: Save combined Parquet file
+write_parquet(
+  dat,
+  file.path(path_1, "ut_r_par_ov_34759_2025.parquet")
+)
+
+
+
 # Create time-dependent dataset for heart transplantation
 adtte_trans <- tmerge(
   data1 = adsl,
