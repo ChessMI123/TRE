@@ -1,3 +1,25 @@
+tdc_label <- attr(data[[tdc]], "label")
+if (is.null(tdc_label)) tdc_label <- tdc
+
+result <- data.frame(
+  outcome = outcome,
+  tdc = tdc_label,
+  group = c("No", "Yes"),
+  events = desc$events[idx],
+  PY = round(desc$PY[idx], 1),
+  IR = round(desc$IR[idx], 2),
+  HR = c("Reference", HR),
+  p_value = c("", p)
+)
+
+
+
+
+
+
+
+
+
 # All-cause mortality
 result_death <- purrr::map(
   c("PM_td", "ICD_td", "CRT_td", "CIED_td"),
