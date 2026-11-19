@@ -1,4 +1,62 @@
+# Formats
+pval_func <- function(pval) {
+  case_when(
+    is.na(pval)    ~ "",
+    pval > 0.1     ~ sprintf("%.2f", pval),
+    pval >= 0.0001 ~ sprintf("%.3f", pval),
+    TRUE           ~ "<.0001"
+  )
+}
 
+# Convert Yes/No to 1/0
+yes_no <- function(x) {
+  case_when(
+    x == "YES" ~ 1,
+    x == "NO"  ~ 0,
+    TRUE       ~ NA_real_
+  )
+}
+
+ynf <- function(x) {
+  factor(x, levels = 0:1, labels = c("No", "Yes"))
+}
+
+prep_func_new <- function(var) {
+  var <- na_if(var, ".A")
+  var <- na_if(var, ".N")
+  var <- na_if(var, ".E")
+  var <- na_if(var, "")
+}
+
+# Bounded complementary log-log link
+bcloglog <- function(edge = 0.5) {
+  link <- make.link("cloglog")
+  link$linkfun <- function(mu) {
+    x <- pmax(edge, pmin(mu, 1 - edge))
+    log(-log(1 - x))
+  }
+  link$name <- "bcloglog"
+  link
+}
+
+# Format estimates and 95% CI
+fmt_ci <- function(est, se) {
+  sprintf("%.2f (%.2f - %.2f)",
+          100 * est,
+          100 * (est - 1.96 * se),
+          100 * (est + 1.96 * se))
+}
+
+# First age where CIF exceeds threshold
+first_age_above <- function(df, threshold) {
+  ages <- df$time[df$cif > threshold]
+  if (length(ages) == 0) NA_real_ else min(ages)
+}
+
+cif_at_time <- function(df, time_point) {
+  idx <- which(df$time >= time_point)
+  if (length(idx) == 0) NA_real_ else df$cif[idx[1]]
+}
 
 
 td_cox_table <- function(
