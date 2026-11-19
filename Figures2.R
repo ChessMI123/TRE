@@ -1,4 +1,16 @@
 
+td_dat <- tmerge(
+  data1 = adsl,
+  data2 = adsl,
+  id = LopNr,
+  tstop = censyrs,
+  death_event = event(deathyrs, death),
+  cv_death_event = event(deathyrs, CVdeath == 1),
+  scd_death_event = event(deathyrs, SCDdeath == 1)
+)
+
+
+
 result <- purrr::map(
   c("PM_td", "ICD_td", "CRT_td", "CIED_td"),
   ~ td_cox_table(
