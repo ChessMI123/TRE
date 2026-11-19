@@ -1,3 +1,24 @@
+# Unadjusted time-dependent Cox regression
+fit <- coxph(
+  Surv(tstart, tstop, death_event) ~ PM_td,
+  data = adtte
+)
+
+summary(fit)
+
+# HR, 95% CI and p-value
+broom::tidy(fit, exponentiate = TRUE, conf.int = TRUE)
+fit_adj <- coxph(
+  Surv(tstart, tstop, death_event) ~ PM_td + sex + age + Birth_region,
+  data = adtte
+)
+
+summary(fit_adj)
+
+broom::tidy(fit_adj, exponentiate = TRUE, conf.int = TRUE) %>%
+  filter(term == "PM_td")
+
+
 tdc_label <- attr(data[[tdc]], "label")
 if (is.null(tdc_label)) tdc_label <- tdc
 
