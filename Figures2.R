@@ -1,5 +1,11 @@
 
 
+fmt_ci <- function(est, lower, upper) {
+  sprintf("%.2f (%.2f - %.2f)", est, lower, upper)
+}
+
+
+
 
 ### Create empty data frames to fill with values
 Pop <- open_dataset("/safe/data/APNC/SCARP-HFDEVICE/Data/Derived/FirstTimeOutcome_HF.parquet") %>% collect() %>% select(LopNr)
