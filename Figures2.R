@@ -1,4 +1,9 @@
 
+line "PY = Person-years; IR = Incidence rate; HR = Hazard ratio.";
+line "Incidence rates are expressed per 100 person-years. Deaths are attributed to the exposure status at the time of death. Patients may contribute person-time to both exposure groups.";
+line "Adjusted hazard ratios are adjusted for sex and age.";
+
+
 	value visitftwo 1 = "Visit 1 (Day 0)"
 	             2 = "¤{style[font_style=italic just=left]Secondary Endpoint 2}¤nVisit 2 (1 month ±14 days)"
 				 3 = "Visit 3 (3 months ±14 days)"
