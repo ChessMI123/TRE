@@ -1,3 +1,17 @@
+
+library(sas7bdat)
+
+sas_path <- file.path(
+  path_0,
+  "ut_r_par_ov_ut1_34759_2025.sas7bdat"
+)
+
+header <- read.sas7bdat.header(sas_path)
+
+header
+
+
+
 library(arrow)
 library(dplyr)
 
