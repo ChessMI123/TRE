@@ -1,3 +1,44 @@
+# Diabetes
+get_disease(Disease = "Diabetes", ICD10 = "^E1[0-4]")
+
+# Renal disease
+get_disease(Disease = "Renal_disease", ICD10 = "^N1[7-9]")
+
+# Liver disease
+get_disease(Disease = "Liver_disease", ICD10 = "^K7[0-7]")
+
+# Ischemic heart disease
+get_disease(Disease = "Ischemic_heart_disease", ICD10 = "^I2[0-5]")
+
+# Peripheral arterial disease
+get_disease(Disease = "Peripheral_arterial_disease", ICD10 = "^I739|^I70")
+
+# Ischemic stroke
+get_disease(Disease = "Ischemic_stroke", ICD10 = "^I63|^I64|^G459")
+
+# Hemorrhagic stroke
+get_disease(Disease = "Hemorrhagic_stroke", ICD10 = "^I6[0-2]")
+
+# Systemic connective tissue disorders
+get_disease(Disease = "Systemic_connective_tissue_disorders", ICD10 = "^M3[0-6]")
+
+# Inflammatory bowel disease
+get_disease(Disease = "Inflammatory_bowel_disease", ICD10 = "^K5[0-2]")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Intracranial bleeding, not traumatic
 get_disease(Disease = "Nontraumatic_intracranial_bleeding", ICD10 = "^I60|^I61|^I62")
 
