@@ -1,4 +1,119 @@
 
+library(dplyr)
+library(lubridate)
+
+# Step 1: Exclude patients aged <18 years
+adsl <- VTE %>%
+  mutate(excl = if_else(age < 18, 1L, 0L))
+
+# Step 2: Combine anticoagulant prescriptions
+AC <- bind_rows(
+  DOAC %>% transmute(LopNr, AC_date = DOAC_date, treatment = "DOAC"),
+  LMWH %>% transmute(LopNr, AC_date = LMWH_date, treatment = "LMWH")
+)
+
+# Step 3: Identify the earliest eligible baseline
+baseline_dat <- adsl %>%
+  filter(excl == 0) %>%
+  select(LopNr, VTE_date) %>%
+  inner_join(TKI, by = "LopNr", relationship = "many-to-many") %>%
+  inner_join(AC, by = "LopNr", relationship = "many-to-many") %>%
+  filter(
+    AC_date >= TKI_date,
+    AC_date <= TKI_date + 60,
+    AC_date >= VTE_date,
+    AC_date < as.Date("2025-10-01")
+  ) %>%
+  arrange(LopNr, AC_date, TKI_date) %>%
+  group_by(LopNr) %>%
+  slice(1) %>%
+  ungroup() %>%
+  rename(baseline = AC_date)
+
+# Step 4: Exclude patients without eligible baseline
+adsl <- adsl %>%
+  left_join(
+    baseline_dat %>% select(LopNr, baseline, treatment),
+    by = "LopNr"
+  ) %>%
+  mutate(
+    excl = case_when(
+      excl == 0 & is.na(baseline) ~ 2L,
+      TRUE ~ excl
+    )
+  )
+
+# Step 5: Exclude previous DOAC or LMWH use
+previous_AC <- adsl %>%
+  filter(excl == 0) %>%
+  select(LopNr, baseline) %>%
+  inner_join(AC, by = "LopNr", relationship = "many-to-many") %>%
+  filter(
+    AC_date < baseline,
+    AC_date >= baseline %m-% months(3)
+  ) %>%
+  distinct(LopNr) %>%
+  mutate(previous_AC = 1L)
+
+adsl <- adsl %>%
+  left_join(previous_AC, by = "LopNr") %>%
+  mutate(
+    excl = case_when(
+      excl == 0 & previous_AC == 1 ~ 3L,
+      TRUE ~ excl
+    )
+  )
+
+# Step 6: Exclude dialysis within 3 months prior to or at baseline
+dialysis_excl <- adsl %>%
+  filter(excl == 0) %>%
+  select(LopNr, baseline) %>%
+  inner_join(Dialysis, by = "LopNr", relationship = "many-to-many") %>%
+  filter(
+    dialysis_date >= baseline %m-% months(3),
+    dialysis_date <= baseline
+  ) %>%
+  distinct(LopNr) %>%
+  mutate(dialysis = 1L)
+
+adsl <- adsl %>%
+  left_join(dialysis_excl, by = "LopNr") %>%
+  mutate(
+    excl = case_when(
+      excl == 0 & dialysis == 1 ~ 4L,
+      TRUE ~ excl
+    )
+  )
+
+# Step 7: Exclude strong CYP3A4 inhibitor use
+cyp_excl <- adsl %>%
+  filter(excl == 0) %>%
+  select(LopNr, baseline) %>%
+  inner_join(CYP3A4, by = "LopNr", relationship = "many-to-many") %>%
+  filter(
+    CYP3A4_date >= baseline %m-% months(3),
+    CYP3A4_date <= baseline
+  ) %>%
+  distinct(LopNr) %>%
+  mutate(CYP3A4 = 1L)
+
+adsl <- adsl %>%
+  left_join(cyp_excl, by = "LopNr") %>%
+  mutate(
+    excl = case_when(
+      excl == 0 & CYP3A4 == 1 ~ 5L,
+      TRUE ~ excl
+    )
+  )
+
+# Step 8: Summary of sequential exclusions
+adsl %>%
+  count(excl)
+
+# Step 9: Final analysis population
+adsl_FAS <- adsl %>%
+  filter(excl == 0)
+
 ### Read in Total population register
 SCB <- read_parquet("/safe/data/SCARP/DATA_2024/PARQUET/ar_lev_grunduppgifter.parquet") %>% rename(LopNr=lopnr)
 
