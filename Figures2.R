@@ -1,3 +1,22 @@
+library(arrow)
+library(dplyr)
+
+parquet_path <- file.path(path_1, "ut_r_par_ov_ut1_34759_2025")
+
+ds <- open_dataset(parquet_path, format = "parquet")
+
+ds %>%
+  summarise(n = n()) %>%
+  collect()
+
+
+proc sql;
+    select count(*) as N
+    from original.ut_r_par_ov_ut1_34759_2025;
+quit;
+
+
+
 data data;
     set adsl(obs=10000);
     where FAS=1;
