@@ -16,7 +16,9 @@ death_compare <- death %>%
   )
 
 
-
+death_compare %>%
+  filter(!is.na(deathdt_avi),
+         deathdt_death != deathdt_avi)
 
 
 
