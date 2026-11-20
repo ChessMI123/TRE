@@ -1,3 +1,72 @@
+Create_dataset <- function(Disease = "Overall_CV_Diag",
+                           Register = c("CDR", "SV", "OV"),
+                           Position = 2,
+                           YearICD10 = c(1996, Inf),
+                           ICD10 = "^I|^Q2[2-3]|^Q243<^Q244") {
+
+  X_list <- list()
+
+  # INPATIENT ICD10
+  if ("SV" %in% Register) {
+    X_list[["SV"]] <- parquet_get_dia(
+      "SV", Name = Disease, ICD_string = ICD10,
+      position = Position,
+      Year_min = YearICD10[1], Year_max = YearICD10[2]
+    ) %>%
+      select(-ALDER, -KON)
+  }
+
+  # OUTPATIENT ICD10
+  if ("OV" %in% Register) {
+    X_list[["OV"]] <- parquet_get_dia(
+      "OV", Name = Disease, ICD_string = ICD10,
+      position = Position,
+      Year_min = YearICD10[1], Year_max = YearICD10[2]
+    ) %>%
+      select(-ALDER, -KON)
+  }
+
+  # CDR ICD10
+  if ("CDR" %in% Register) {
+    X_list[["CDR"]] <- parquet_get_dia(
+      "CDR", Name = Disease, ICD_string = ICD10,
+      position = Position,
+      Year_min = YearICD10[1], Year_max = YearICD10[2]
+    ) %>%
+      select(-ALDER, -KON)
+  }
+
+  # Combine registers and keep first diagnosis
+  X <- bind_rows(X_list) %>%
+    group_by(LopNr) %>%
+    arrange(INDATUM, .by_group = TRUE) %>%
+    slice(1) %>%
+    ungroup() %>%
+    select(LopNr, INDATUM, Diagnose)
+
+  # Add disease-specific variables
+  X[, paste0("INDATUM_", Disease)] <- X$INDATUM
+  X[, Disease] <- 1
+
+  # Save only final dataset
+  X %>%
+    write_parquet(
+      paste0(
+        "/safe/data/APNC/SCARLET morbidity/Data/Derived/FirstTimeOutcome_",
+        Disease, ".parquet"
+      )
+    )
+
+  rm(X_list, X)
+  gc()
+}
+
+
+
+
+
+
+
 library(reticulate)
 
 py_install("pyreadstat")
