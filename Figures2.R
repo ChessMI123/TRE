@@ -1,3 +1,39 @@
+library(dplyr)
+
+# Step 1: Calculate duration of each prescription
+TKI <- TKI %>%
+  mutate(
+    days_supply = ceiling(Antalforpackning * packagesize / daily_tablets),
+    supply_end = TKI_date + days_supply - 1
+  )
+
+DOAC <- DOAC %>%
+  mutate(
+    days_supply = ceiling(Antalforpackning * packagesize / daily_tablets),
+    supply_end = DOAC_date + days_supply - 1
+  )
+
+get_treatment <- function(data, date) {
+
+  data %>%
+    arrange(LopNr, {{ date }}) %>%
+    group_by(LopNr) %>%
+    mutate(
+      previous_end = lag(cummax(supply_end)),
+      new_episode = if_else(
+        is.na(previous_end) | {{ date }} > previous_end + 31,
+        1L, 0L
+      ),
+      episode = cumsum(new_episode)
+    ) %>%
+    group_by(LopNr, episode) %>%
+    summarise(
+      treatment_start = min({{ date }}),
+      treatment_end = max(supply_end),
+      .groups = "drop"
+    )
+}
+
 
 library(dplyr)
 library(lubridate)
