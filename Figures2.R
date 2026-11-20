@@ -1,3 +1,18 @@
+
+get_disease(Disease = "ALL", ICD10 = "^C91") # Acute lymphatic leukemia
+get_disease(Disease = "Breast_cancer", ICD10 = "^C50") # Breast cancer
+get_disease(Disease = "CML", ICD10 = "^C921") # Chronic myeloid leukemia
+get_disease(Disease = "GIST", ICD10 = "^C1[6-8]") # Gastrointestinal stromal tumor
+get_disease(Disease = "Kidney_cancer", ICD10 = "^C64") # Kidney cancer
+get_disease(Disease = "Lung_cancer", ICD10 = "^C34") # Lung cancer
+get_disease(Disease = "pNET", ICD10 = "^C254") # Pancreatic neuroendocrine tumor
+get_disease(Disease = "Thyroid_cancer", ICD10 = "^C73") # Thyroid cancer
+get_disease(Disease = "Urothelial_cancer", ICD10 = "^C659|^C669|^C67|^C680|^C688|^C689") # Urothelial cancer
+
+
+
+
+
 # Diabetes
 get_disease(Disease = "Diabetes", ICD10 = "^E1[0-4]")
 
