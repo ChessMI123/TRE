@@ -1,3 +1,34 @@
+        " mutate(across(c(hdia,DIA1:DIA",number_of_columns,"),~sub('\\\\\\.|\\\\\\,|\\\\\\-','','.',.)) %>%
+        filter(AR>=",Year_min,",AR<",Year_max,")  %>%",
+        if_else(position!=1,
+                paste0("filter(if_any(.cols=c(hdia,DIA1:DIA",number_of_columns,"),.fns=list(G=~grepl('",ICD_string,"',.x)))) %>%"),
+                paste0("filter(grepl('",ICD_string,"',hdia)) %>%")),
+        "group_by(LopNr) %>%",
+        dplyr::case_when(REG=="SV"~"arrange(UTDATUM,.by_group = TRUE) %>%",
+                         REG=="OV"~"mutate(UTDATUM=INDATUM) %>% arrange(INDATUM,.by_group = TRUE) %>%",
+                         REG=="CDR"~"mutate(INDATUM=UTDATUM) %>% arrange(UTDATUM,.by_group = TRUE) %>%",
+                         REG=="VPR"~"mutate(INDATUM=UTDATUM) %>% arrange(UTDATUM,.by_group = TRUE) %>%",
+                         TRUE~"arrange(INDATUM,.by_group = TRUE) %>%"),
+        "collect() %>%",# mutate(id=row_number()) %>%
+        #filter(id==1) %>%",
+        dplyr::case_when(REG=="SV"~"select(LopNr,AR,INDATUM,UTDATUM,hdia,DIA1:DIA30,ALDER,KON) %>%",
+                         REG=="OV"~"select(LopNr,AR,INDATUM,UTDATUM,hdia,DIA1:DIA30) %>%",
+                         REG=="CDR"~"select(LopNr,AR,UTDATUM,INDATUM,hdia,DIA1:DIA48) %>%",
+                         REG=="VPR"~"select(LopNr,AR,UTDATUM,INDATUM,hdia,DIA1:DIA6) %>%",
+                         TRUE~"select(LopNr,AR,INDATUM,UTDATUM,hdia,DIA1:DIA30,ALDER,KON) %>%"),
+        "identity()")
+apa <- eval(parse(text=apa_string)) %>% mutate(Diagnose=Name,Reg=REG)
+
+return(apa)
+}
+
+
+
+
+
+
+
+
 Create_dataset <- function(Disease = "Overall_CV_Diag",
                            Register = c("CDR", "SV", "OV"),
                            Position = 2,
