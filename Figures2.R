@@ -1,3 +1,24 @@
+library(dplyr)
+library(lubridate)
+
+# Dates affected by format_DODSDAT
+death_changed <- death %>%
+  filter(deathdt != ymd(DODSDAT, quiet = TRUE) |
+         (is.na(ymd(DODSDAT, quiet = TRUE)) & !is.na(deathdt)))
+
+avi_changed <- death_avi %>%
+  filter(deathdt != ymd(DODSDAT, quiet = TRUE) |
+         (is.na(ymd(DODSDAT, quiet = TRUE)) & !is.na(deathdt)))
+
+# Patients with modified dates in the main register but not AVI
+death_changed_only <- death_changed %>%
+  anti_join(avi_changed, by = "LopNr")
+
+nrow(death_changed_only)
+
+
+
+
 library(arrow)
 library(dplyr)
 library(lubridate)
