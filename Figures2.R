@@ -1,5 +1,47 @@
 library(dplyr)
 
+# DOAC: Calculate duration of each prescription
+DOAC <- DOAC %>%
+  mutate(
+    tablets = Antalforpackning * packagesize,
+    days_supply = case_when(
+      # Rivaroxaban: 2 tablets/day for 21 days, thereafter 1/day
+      Type == "B01AF01" ~
+        if_else(tablets <= 42, tablets / 2, 21 + (tablets - 42)),
+
+      # Apixaban: 4 tablets/day for 7 days, thereafter 2/day
+      Type == "B01AF02" ~
+        if_else(tablets <= 28, tablets / 4, 7 + (tablets - 28) / 2),
+
+      # Dabigatran and Edoxaban: 2 tablets/day
+      Type %in% c("B01AF03", "B01AF07") ~ tablets / 2,
+
+      TRUE ~ NA_real_
+    ),
+    days_supply = ceiling(days_supply),
+    supply_end = DOAC_date + days_supply - 1
+  )
+
+# LMWH: Calculate duration of each prescription
+LMWH <- LMWH %>%
+  mutate(
+    doses = Antalforpackning * packagesize,
+    days_supply = case_when(
+      # Tinzaparin and Dalteparin: 1 dose/day
+      Type %in% c("B01AB10", "B01AB04") ~ doses,
+
+      TRUE ~ NA_real_
+    ),
+    days_supply = ceiling(days_supply),
+    supply_end = LMWH_date + days_supply - 1
+  )
+
+
+
+
+
+library(dplyr)
+
 # Step 1: Calculate duration of each prescription
 TKI <- TKI %>%
   mutate(
