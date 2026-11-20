@@ -1,4 +1,17 @@
 
+if (!is.null(ICD_exclude)) {
+  if (position != 1) {
+    paste0("filter(!if_any(.cols=c(HDIA,DIA1:DIA", number_of_columns,
+           "),.fns=list(G=~grepl('", ICD_exclude, "',.x)))) %>%")
+  } else {
+    paste0("filter(!grepl('", ICD_exclude, "',HDIA)) %>%")
+  }
+} else {
+  ""
+},
+
+
+
 death_compare <- death %>%
   select(LopNr, DODSDAT, deathdt) %>%
   rename(
