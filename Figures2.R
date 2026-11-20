@@ -1,3 +1,20 @@
+# LISA
+path_0 <- "/safe/data/Original data 2026/SCB/Leverans"
+path_1 <- "/safe/data/Original data 2026/PARQUET"
+
+for (i in 2009:2022) {
+
+  lisa <- read_sas(file.path(path_0, paste0("ar_lev_lisa_", i, ".sas7bdat")))
+
+  write_parquet(lisa, file.path(path_1, paste0("ar_lev_lisa_", i, ".parquet")))
+
+  rm(lisa)
+  gc()
+
+}
+
+
+
 
 if (!is.null(ICD_exclude)) {
   if (position != 1) {
