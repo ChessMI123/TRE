@@ -1,4 +1,59 @@
 
+### Read in Total population register
+SCB <- read_parquet("/safe/data/SCARP/DATA_2024/PARQUET/ar_lev_grunduppgifter.parquet") %>% rename(LopNr=lopnr)
+
+### Population
+Pop <- open_dataset(file.path(der,"FirstTimeOutcome_HF.parquet")) %>% collect() %>%
+        transmute(LopNr=LopNr, baseline = INDATUM, lisayr = year(baseline)) %>%
+        left_join(SwedeHF, by = "LopNr") %>%
+        mutate(in_SwedeHF = as.integer(LopNr %in% SwedeHF$LopNr))
+
+
+### Exclusion criteria:
+Pop1 <- Pop %>% mutate(excl = if_else(is.na(baseline),1,0))
+
+Pop2 <- Pop1 %>% mutate(excl = if_else(excl == 0 & (baseline<as.Date("2009-01-01") | baseline==as.Date("2023-12-31")),2,excl))
+
+Pop3 <- Pop2 %>% left_join(open_dataset(file.path(der,"all_cause_death.parquet"))%>% collect(),by="LopNr") %>%
+        mutate(deathdt = case_when(
+            deathdt <= baseline & !is.na(befdoddtm) ~ befdoddtm, # These are death dates with wrong format which is why heart failure can happen afterwards
+            deathdt <= baseline & is.na(befdoddtm) ~ baseline,  # We assume if it is available in Riksvikt or assume it is the same day as baseline
+            TRUE ~ deathdt),
+        excl=case_when(excl==0 & (deathdt == baseline)~3,TRUE~excl))
+
+excl_aterpnr <- SCB %>% filter(aterpnr == 1) %>% distinct(LopNr) %>% mutate(excl_aterpnr = 2) %>% select(LopNr,excl_aterpnr)
+
+Pop4 <- Pop3 %>% left_join(excl_aterpnr,by ="LopNr") %>%
+        ungroup() %>%
+        mutate(excl = case_when(excl == 0 & excl_aterpnr ==4 ~ excl_aterpnr,TRUE~excl)) %>%
+        select(-excl_aterpnr)
+
+save(Pop4, file = file.path(der,"Pop4.RData"))
+load(file.path(der,"Pop4.RData"))
+
+Pop5 <- Pop4 %>%
+        left_join(open_dataset(file.path(der,"CIED_exclusion.parquet")) %>% collect(),by="LopNr") %>%
+        mutate(prior_cied=ifelse(!is.na(EVENTDATE_CIED) & EVENTDATE_CIED <=baseline, 1, 0),
+               excl=case_when(excl==0 & prior_cied==1~5,TRUE~excl))
+
+Pop6 <- Pop5 %>%
+        mutate(excl=case_when(excl==0 & !REASON_CIED %in% c("Primärimplantation","N/A",NA)==1~6,TRUE~excl),
+               FAS = if_else(excl == 0,1,0)) %>%
+        select(-c(prior_cied,EVENTDATE_CIED,REASON_CIED,befdoddtm))
+
+
+##save to continue later
+save(Pop6, file = file.path(der,"Pop6.RData"))
+load(file.path(der,"Pop6.RData"))
+
+
+
+
+
+
+
+
+
 get_disease(Disease = "ALL", ICD10 = "^C91") # Acute lymphatic leukemia
 get_disease(Disease = "Breast_cancer", ICD10 = "^C50") # Breast cancer
 get_disease(Disease = "CML", ICD10 = "^C921") # Chronic myeloid leukemia
