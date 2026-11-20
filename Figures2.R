@@ -1,3 +1,36 @@
+# Intracranial bleeding, not traumatic
+get_disease(Disease = "Nontraumatic_intracranial_bleeding", ICD10 = "^I60|^I61|^I62")
+
+# Intracranial bleeding, traumatic
+get_disease(Disease = "Traumatic_intracranial_bleeding", ICD10 = "^S064|^S065|^S066")
+
+# Hemopericardium
+get_disease(Disease = "Hemopericardium", ICD10 = "^I312")
+
+# Gastrointestinal bleeding
+get_disease(Disease = "Gastrointestinal_bleeding", ICD10 = "^I850|^I983|^K250|^K252|^K254|^K256|^K260|^K262|^K264|^K266|^K270|^K272|^K274|^K276|^K280|^K282|^K284|^K286|^K290|^K625|^K922|^K920|^K921|^K661")
+
+# Bleeding in the airways
+get_disease(Disease = "Airway_bleeding", ICD10 = "^R04|^R58|^J942|^S271|^H922")
+
+# Anemia due to bleeding
+get_disease(Disease = "Anemia_due_to_bleeding", ICD10 = "^D629")
+
+# Genital bleeding
+get_disease(Disease = "Genital_bleeding", ICD10 = "^N920|^N921|^N922|^N923|^N924|^N93|^N950|^N421|^N501A")
+
+# Hematuria
+get_disease(Disease = "Hematuria", ICD10 = "^R31")
+
+# Bleeding in the eye
+get_disease(Disease = "Eye_bleeding", ICD10 = "^H113|^H313|^H356|^H431|^H450")
+
+
+
+
+
+
+
 # LISA
 path_0 <- "/safe/data/Original data 2026/SCB/Leverans"
 path_1 <- "/safe/data/Original data 2026/PARQUET"
