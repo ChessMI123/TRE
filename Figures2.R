@@ -1,3 +1,18 @@
+library(reticulate)
+
+py_install("pyreadstat")
+
+pyreadstat <- import("pyreadstat")
+
+result <- pyreadstat$read_sas7bdat(
+  sas_path,
+  metadataonly = TRUE
+)
+
+result[[2]]$number_rows
+
+
+
 
 library(sas7bdat)
 
