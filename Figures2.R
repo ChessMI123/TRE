@@ -1,4 +1,73 @@
-        " mutate(across(c(hdia,DIA1:DIA",number_of_columns,"),~sub('\\\\\\.|\\\\\\,|\\\\\\-','','.',.)) %>%
+library(arrow)
+library(dplyr)
+library(lubridate)
+
+# Convert DODSDAT to Date, replacing unknown month/day with 01.
+format_DODSDAT <- function(x) {
+  x <- as.character(x)
+  x <- trimws(x)
+
+  date_string <- case_when(
+    nchar(x) == 8 & substr(x, 5, 8) == "0000" ~ paste0(substr(x, 1, 4), "0101"),
+    nchar(x) == 8 & substr(x, 7, 8) == "00" ~ paste0(substr(x, 1, 6), "01"),
+    nchar(x) == 6 & substr(x, 1, 2) %in% c("19", "20") ~ paste0(x, "01"),
+    TRUE ~ x
+  )
+
+  ymd(date_string, quiet = TRUE)
+}
+
+# Main death register
+death <- open_dataset("/safe/data/SCARP/DATA_2024/PARQUET/ut_r_dors_19328_2023.parquet") %>%
+  collect()
+
+nrow(death)
+n_distinct(death$LopNr)
+
+d1 <- death %>%
+  mutate(deathdt = format_DODSDAT(DODSDAT))
+
+# Supplementary death register (AVI)
+death_avi <- open_dataset("/safe/data/SCARP/DATA_2024/PARQUET/ut_r_dors_avi_19328_2023.parquet") %>%
+  collect()
+
+da1 <- death_avi %>%
+  mutate(deathdt = format_DODSDAT(DODSDAT))
+
+# Keep all main-register records; add AVI records only for new patients.
+all_cause_death <- bind_rows(
+  d1 %>% select(LopNr, DODSDAT, deathdt),
+  da1 %>% anti_join(d1, by = "LopNr") %>% select(LopNr, DODSDAT, deathdt)
+)
+
+# Retain first recorded death on or after 2000-01-01 for each patient.
+all_cause_death <- all_cause_death %>%
+  filter(!is.na(deathdt), deathdt >= as.Date("2000-01-01")) %>%
+  arrange(LopNr, deathdt) %>%
+  group_by(LopNr) %>%
+  slice(1) %>%
+  ungroup()
+
+n_distinct(all_cause_death$LopNr)
+nrow(all_cause_death)
+
+write_parquet(
+  all_cause_death,
+  "/safe/data/APNC/SCARP-HFDEVICE/Data/Derived/all_cause_death.parquet"
+)
+
+
+
+
+
+
+
+
+
+
+
+
+" mutate(across(c(hdia,DIA1:DIA",number_of_columns,"),~sub('\\\\\\.|\\\\\\,|\\\\\\-','','.',.)) %>%
         filter(AR>=",Year_min,",AR<",Year_max,")  %>%",
         if_else(position!=1,
                 paste0("filter(if_any(.cols=c(hdia,DIA1:DIA",number_of_columns,"),.fns=list(G=~grepl('",ICD_string,"',.x)))) %>%"),
