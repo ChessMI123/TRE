@@ -1,3 +1,26 @@
+
+death_compare <- death %>%
+  select(LopNr, DODSDAT, deathdt) %>%
+  rename(
+    DODSDAT_death = DODSDAT,
+    deathdt_death = deathdt
+  ) %>%
+  left_join(
+    death_avi %>%
+      select(LopNr, DODSDAT, deathdt) %>%
+      rename(
+        DODSDAT_avi = DODSDAT,
+        deathdt_avi = deathdt
+      ),
+    by = "LopNr"
+  )
+
+
+
+
+
+
+
 library(dplyr)
 library(lubridate)
 
