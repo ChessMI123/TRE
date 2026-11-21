@@ -1,4 +1,26 @@
+get_treatment <- function(data) {
 
+  data %>%
+    filter(!is.na(EDATUM), !is.na(days_supply), days_supply > 0) %>%
+    arrange(LopNr, EDATUM) %>%
+    group_by(LopNr) %>%
+    mutate(
+      previous_end = as.Date(lag(cummax(as.numeric(supply_end))), origin = "1970-01-01"),
+      new_episode = if_else(
+        is.na(previous_end) | EDATUM > previous_end + 31,
+        1L, 0L
+      ),
+      episode = cumsum(new_episode)
+    ) %>%
+    group_by(LopNr, episode) %>%
+    mutate(
+      treatment_start = min(EDATUM),
+      treatment_end = max(supply_end)
+    ) %>%
+    ungroup()
+}
+
+DOAC <- get_treatment(DOAC)
 library(dplyr)
 library(arrow)
 
