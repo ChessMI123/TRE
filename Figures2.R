@@ -1,3 +1,87 @@
+
+library(dplyr)
+library(arrow)
+
+# Step 1: Combine all DOAC prescriptions
+DOAC <- bind_rows(
+  open_dataset(file.path(meds, "EVENTS_Rivaroxaban_prescription.parquet")) %>% collect(),
+  open_dataset(file.path(meds, "EVENTS_Apixaban_prescription.parquet")) %>% collect(),
+  open_dataset(file.path(meds, "EVENTS_Dabigatran_prescription.parquet")) %>% collect(),
+  open_dataset(file.path(meds, "EVENTS_Edoxaban_prescription.parquet")) %>% collect()
+) %>%
+  filter(!(coalesce(ATC == "B01AF01" & styrknum == 2.5, FALSE))) %>%
+  arrange(LopNr, EDATUM)
+
+# Step 2: Calculate duration of each prescription
+DOAC <- DOAC %>%
+  mutate(
+    tablets = ANTAL * antnum,
+    days_supply = case_when(
+      # Rivaroxaban: 2 tablets/day for 21 days, thereafter 1/day
+      ATC == "B01AF01" ~
+        if_else(tablets <= 42, tablets / 2, 21 + (tablets - 42)),
+
+      # Apixaban: 4 tablets/day for 7 days, thereafter 2/day
+      ATC == "B01AF02" ~
+        if_else(tablets <= 28, tablets / 4, 7 + (tablets - 28) / 2),
+
+      # Dabigatran and Edoxaban: 2 tablets/day
+      ATC %in% c("B01AF03", "B01AF07") ~ tablets / 2,
+
+      TRUE ~ NA_real_
+    ),
+    days_supply = ceiling(days_supply),
+    supply_end = EDATUM + days_supply - 1
+  )
+
+# Step 3: Identify treatment episodes (30-day grace period)
+get_treatment <- function(data) {
+
+  data %>%
+    filter(!is.na(EDATUM), !is.na(days_supply), days_supply > 0) %>%
+    arrange(LopNr, EDATUM) %>%
+    group_by(LopNr) %>%
+    mutate(
+      previous_end = lag(cummax(supply_end)),
+      new_episode = if_else(
+        is.na(previous_end) | EDATUM > previous_end + 31,
+        1L, 0L
+      ),
+      episode = cumsum(new_episode)
+    ) %>%
+    group_by(LopNr, episode) %>%
+    mutate(
+      treatment_start = min(EDATUM),
+      treatment_end = max(supply_end)
+    ) %>%
+    ungroup()
+}
+
+# Step 4: Add treatment episode information to each prescription
+DOAC <- get_treatment(DOAC)
+
+# Step 5: Inspect results
+DOAC %>%
+  select(LopNr, EDATUM, ATC, styrknum, days_supply, supply_end,
+         episode, treatment_start, treatment_end) %>%
+  arrange(LopNr, EDATUM)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 library(dplyr)
 
 # DOAC: Calculate duration of each prescription
