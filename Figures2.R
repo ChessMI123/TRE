@@ -1,3 +1,10 @@
+
+library(arrow)
+
+SV <- open_dataset("/safe/data/Original data 2026/PARQUET/ut_r_par_sv_34759_2025.parquet")
+
+names(SV)
+
 # Calculate duration of each prescription
 LMWH <- LMWH %>%
   mutate(
