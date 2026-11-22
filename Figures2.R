@@ -1,4 +1,6 @@
 
+
+filter(INDATUM >= as.Date("2018-01-01") & INDATUM < as.Date("2025-10-01"))
 library(arrow)
 
 SV <- open_dataset("/safe/data/Original data 2026/PARQUET/ut_r_par_sv_34759_2025.parquet")
