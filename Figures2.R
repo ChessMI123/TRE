@@ -1,3 +1,15 @@
+# Combine all AC prescriptions
+AC <- bind_rows(
+  DOAC %>% transmute(LopNr, AC_date = DOAC_date, treatment = "DOAC"),
+  LMWH %>% transmute(LopNr, AC_date = LMWH_date, treatment = "LMWH")
+) %>%
+  arrange(LopNr, AC_date)
+
+# Save as Parquet
+write_parquet(AC, file.path(meds, "EVENTS_AC_prescription.parquet"))
+
+
+
 baseline_dat <- VTE %>%
   inner_join(TKI, by = "LopNr", relationship = "one-to-many") %>%
   arrange(LopNr, abs(as.numeric(EDATUM_TKI - INDATUM_VTE))) %>%
