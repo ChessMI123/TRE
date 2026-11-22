@@ -1,3 +1,19 @@
+# Calculate duration of each prescription
+LMWH <- LMWH %>%
+  mutate(
+    doses = ANTAL * antnum,
+    days_supply = case_when(
+      ATC == "B01AB10" ~ doses, # Tinzaparin: 1 dose/day
+      ATC == "B01AB04" ~ doses, # Dalteparin: 1 dose/day
+      ATC == "B01AB05" ~ doses, # Enoxaparin: 1 dose/day
+      TRUE ~ NA_real_
+    ),
+    days_supply = ceiling(days_supply),
+    supply_end = EDATUM + days_supply - 1
+  )
+
+
+
 DOAC %>%
   arrange(LopNr, EDATUM) %>%
   group_by(LopNr) %>%
