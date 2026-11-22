@@ -1,3 +1,11 @@
+baseline_dat <- VTE %>%
+  inner_join(TKI, by = "LopNr", relationship = "one-to-many") %>%
+  arrange(LopNr, abs(as.numeric(EDATUM_TKI - INDATUM_VTE))) %>%
+  group_by(LopNr) %>%
+  slice(1) %>%
+  ungroup()
+
+
 # Combine all TKI prescriptions
 TKI <- bind_rows(
   open_dataset(file.path(meds, "EVENTS_Crizotinib_prescription.parquet")) %>% collect(),
