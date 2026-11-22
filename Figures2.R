@@ -1,4 +1,18 @@
-
+# Combine all TKI prescriptions
+TKI <- bind_rows(
+  open_dataset(file.path(meds, "EVENTS_Crizotinib_prescription.parquet")) %>% collect(),
+  open_dataset(file.path(meds, "EVENTS_Ceritinib_prescription.parquet")) %>% collect(),
+  open_dataset(file.path(meds, "EVENTS_Erdafitinib_prescription.parquet")) %>% collect(),
+  open_dataset(file.path(meds, "EVENTS_Imatinib_prescription.parquet")) %>% collect(),
+  open_dataset(file.path(meds, "EVENTS_Osimertinib_prescription.parquet")) %>% collect(),
+  open_dataset(file.path(meds, "EVENTS_Selpercatinib_prescription.parquet")) %>% collect(),
+  open_dataset(file.path(meds, "EVENTS_Sotorasib_prescription.parquet")) %>% collect(),
+  open_dataset(file.path(meds, "EVENTS_Sunitinib_prescription.parquet")) %>% collect(),
+  open_dataset(file.path(meds, "EVENTS_Tepotinib_prescription.parquet")) %>% collect(),
+  open_dataset(file.path(meds, "EVENTS_Tucatinib_prescription.parquet")) %>% collect(),
+  open_dataset(file.path(meds, "EVENTS_Vandetanib_prescription.parquet")) %>% collect()
+) %>%
+  arrange(LopNr, EDATUM)
 
 filter(INDATUM >= as.Date("2018-01-01") & INDATUM < as.Date("2025-10-01"))
 library(arrow)
