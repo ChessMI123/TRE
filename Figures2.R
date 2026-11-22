@@ -1,3 +1,11 @@
+DOAC %>%
+  arrange(LopNr, EDATUM) %>%
+  group_by(LopNr) %>%
+  slice(1) %>%
+  ungroup() %>%
+  filter(ATC == "B01AF02", styrknum == 2.5)
+
+
 # Calculate duration of each prescription
 DOAC <- DOAC %>%
   mutate(
