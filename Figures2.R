@@ -1,3 +1,20 @@
+# Combine all CYP3A4 inhibitor prescriptions
+CYP3A4 <- bind_rows(
+  open_dataset(file.path(meds, "EVENTS_Itraconazole_prescription.parquet")) %>% collect(),
+  open_dataset(file.path(meds, "EVENTS_Ketoconazole_prescription.parquet")) %>% collect(),
+  open_dataset(file.path(meds, "EVENTS_Posaconazole_prescription.parquet")) %>% collect(),
+  open_dataset(file.path(meds, "EVENTS_Voriconazole_prescription.parquet")) %>% collect(),
+  open_dataset(file.path(meds, "EVENTS_Ritonavir_prescription.parquet")) %>% collect(),
+  open_dataset(file.path(meds, "EVENTS_Clarithromycin_prescription.parquet")) %>% collect()
+) %>%
+  arrange(LopNr, EDATUM) %>%
+  transmute(LopNr, EDATUM_CYP3A4 = EDATUM)
+
+write_parquet(CYP3A4, file.path(meds, "EVENTS_CYP3A4_prescription.parquet"))
+
+
+
+
 # CYP3A4 INHIBITORS
 get_medication_all(NAME = "Itraconazole",  ICD_CODE = "J02AC02")
 get_medication_all(NAME = "Ketoconazole",  ICD_CODE = "J02AB02")
