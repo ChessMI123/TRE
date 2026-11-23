@@ -1,4 +1,14 @@
 
+
+# DOAC
+DOACkoll <- DOAC %>%
+  filter(LopNr %in% excl3$LopNr) %>%
+  left_join(Pop %>% select(LopNr, baseline), by = "LopNr")
+
+# LMWH
+LMWHkoll <- LMWH %>%
+  filter(LopNr %in% excl3$LopNr) %>%
+  left_join(Pop %>% select(LopNr, baseline), by = "LopNr")
 baseline_3m <- function(data, Name) {
 
   message(Name)
