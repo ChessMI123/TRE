@@ -1,3 +1,10 @@
+adsl %>%
+  filter(EDATUM_TKI < INDATUM_VTE) %>%
+  mutate(days_before = as.numeric(INDATUM_VTE - EDATUM_TKI)) %>%
+  slice_max(days_before, n = 1)
+
+
+
 # Combine all AC prescriptions
 AC <- bind_rows(
   DOAC %>% transmute(LopNr, AC_date = DOAC_date, treatment = "DOAC"),
