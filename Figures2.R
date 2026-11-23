@@ -1,3 +1,13 @@
+# CYP3A4 INHIBITORS
+get_medication_all(NAME = "Itraconazole",  ICD_CODE = "J02AC02")
+get_medication_all(NAME = "Ketoconazole",  ICD_CODE = "J02AB02")
+get_medication_all(NAME = "Posaconazole",  ICD_CODE = "J02AC04")
+get_medication_all(NAME = "Voriconazole",  ICD_CODE = "J02AC03")
+get_medication_all(NAME = "Ritonavir",     ICD_CODE = "J05AE03")
+get_medication_all(NAME = "Clarithromycin", ICD_CODE = "J01FA09")
+
+
+
 Pop1 <- Pop %>%
   baseline_6m("Dialysis") %>%
   mutate(excl1 = if_else(bl_Dialysis == "Yes", 0, 1))
