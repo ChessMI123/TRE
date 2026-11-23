@@ -1,3 +1,24 @@
+# Calculate duration of each prescription
+DOAC <- DOAC %>%
+  mutate(
+    tablets = ANTAL * antnum,
+    days_supply = case_when(
+      ATC == "B01AF01" & styrknum == 15 ~ if_else(tablets <= 42, tablets / 2, 21 + (tablets - 42)), # Rivaroxaban 15 mg: 2 tablets/day for 21 days, thereafter 1/day
+      ATC == "B01AF01" & styrknum == 20 ~ tablets, # Rivaroxaban 20 mg: 1 tablet/day
+      ATC == "B01AF02" & styrknum == 5 ~ if_else(tablets <= 28, tablets / 4, 7 + (tablets - 28) / 2), # Apixaban 5 mg: 4 tablets/day for 7 days, thereafter 2/day
+      ATC == "B01AF02" & styrknum == 2.5 ~ tablets / 2, # Apixaban 2.5 mg: 2 tablets/day
+      ATC %in% c("B01AF03", "B01AE07") ~ tablets / 2, # Edoxaban and Dabigatran: 2 tablets/day
+      TRUE ~ NA_real_
+    ),
+    days_supply = ceiling(days_supply),
+    supply_end = EDATUM + days_supply - 1
+  )
+
+
+
+
+
+
 # Combine all DOAC prescriptions
 DOAC <- bind_rows(
   open_dataset(file.path(meds, "EVENTS_Rivaroxaban_prescription.parquet")) %>%
