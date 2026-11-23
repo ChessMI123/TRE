@@ -1,3 +1,15 @@
+# Exclusion 1: Dialysis at baseline or within 3 months prior
+check <- open_dataset(file.path(der, "EVENTS_Dialysis.parquet")) %>%
+  collect() %>%
+  inner_join(baseline_dat %>% select(LopNr, baseline), by = "LopNr") %>%
+  filter(UTDATUM >= baseline %m-% months(3), UTDATUM <= baseline) %>%
+  distinct(LopNr)
+
+baseline_dat <- baseline_dat %>%
+  mutate(excl = if_else(LopNr %in% check$LopNr, 0, 1))
+
+
+
 # Calculate duration of each prescription
 DOAC <- DOAC %>%
   mutate(
