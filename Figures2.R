@@ -1,3 +1,16 @@
+# Combine all DOAC prescriptions
+DOAC <- bind_rows(
+  open_dataset(file.path(meds, "EVENTS_Rivaroxaban_prescription.parquet")) %>%
+    filter(!(coalesce(styrknum %in% c(2.5, 1), FALSE))) %>% collect(),
+  open_dataset(file.path(meds, "EVENTS_Apixaban_prescription.parquet")) %>% collect(),
+  open_dataset(file.path(meds, "EVENTS_Dabigatran_prescription.parquet")) %>%
+    filter(!(coalesce(styrknum == 75, FALSE))) %>% collect(),
+  open_dataset(file.path(meds, "EVENTS_Edoxaban_prescription.parquet")) %>% collect()
+) %>%
+  arrange(LopNr, EDATUM)
+
+
+
 adsl %>%
   filter(EDATUM_TKI < INDATUM_VTE) %>%
   mutate(days_before = as.numeric(INDATUM_VTE - EDATUM_TKI)) %>%
