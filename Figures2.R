@@ -1,4 +1,6 @@
-
+Pop1 <- Pop %>%
+  baseline_6m("Dialysis") %>%
+  mutate(excl1 = if_else(bl_Dialysis == "Yes", 0, 1))
 # Exclusion 1: Dialysis at baseline or within 3 months prior
 Pop1 <- Pop %>%
   baseline_disease("Dialysis", uppbound = 0, lowbound = -92) %>%
