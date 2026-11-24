@@ -1,3 +1,16 @@
+Pop3 <- Pop2 %>%
+  mutate(excl = case_when(excl == 0 & LopNr %in% c(
+    1564728, 2499503, 3124008, 3330799, 3338217, 3392967, 3529066, 3544843, # excl DOAC
+    110126, 187371, 233004, 504389, 669175, 742191, 774767, 844354,          # excl LMWH
+    1721193, 1805284, 1979265, 2383936, 2504734, 2650247, 2680927, 2789045,
+    2932662, 2982578, 3009904, 3013373, 3025960, 3455492, 3491378, 3507612,
+    3590077, 3616830, 3726200, 3736811, 3830285
+  ) ~ 3, TRUE ~ excl)) # We have classified these manually based on their prescription records.
+
+
+
+
+
 ### Temporary provoking factors
 adsl6 <- adsl5 %>%
   baseline_3m("Nervous_system_surgery") %>%
