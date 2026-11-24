@@ -5,6 +5,13 @@ check <- Pop3 %>%
   arrange(LopNr, EDATUM)
 
 
+check <- Pop3 %>%
+  filter(treatment == "DOAC", !LopNr %in% excl3$LopNr) %>%
+  inner_join(DOAC %>% select(LopNr, EDATUM), by = "LopNr") %>%
+  filter(EDATUM >= baseline %m-% months(3), EDATUM < baseline) %>%
+  arrange(LopNr, EDATUM)
+
+
 Pop3 <- Pop2 %>%
   mutate(excl = case_when(excl == 0 & LopNr %in% c(
     1564728, 2499503, 3124008, 3330799, 3338217, 3392967, 3529066, 3544843, # excl DOAC
