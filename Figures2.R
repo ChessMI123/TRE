@@ -41,6 +41,52 @@ baseline <- function(data, Name) {
 }
 
 
+
+baseline_6m <- function(data, Name) {
+
+  message(Name)
+  file_path <- file.path(der, paste0("EVENTS_", Name, ".parquet"))
+
+  if (!file.exists(file_path)) {
+    file_path <- file.path(meds, paste0("EVENTS_", Name, "_prescription.parquet"))
+  }
+
+  if (!file.exists(file_path)) {
+    message("File not found: ", file_path)
+    return(data)
+  }
+
+  tmp <- read_parquet(file_path)
+
+  date_var <- if ("UTDATUM" %in% names(tmp)) "UTDATUM" else if ("EDATUM" %in% names(tmp)) "EDATUM" else paste0("EDATUM_", Name)
+
+  tmp <- tmp %>%
+    transmute(LopNr, UTDATUM = .data[[date_var]])
+
+  col_name <- paste0("bl_6m_", Name)
+  if (col_name %in% colnames(data)) {data <- data %>% select(-all_of(col_name))}
+
+  df_adsl <- data %>%
+    left_join(tmp, by = "LopNr")
+
+  df_temporary <- df_adsl %>%
+    filter(UTDATUM >= baseline %m-% months(6), UTDATUM <= baseline)
+
+  df_for_join <- data.frame(LopNr = unique(df_temporary$LopNr)) %>%
+    mutate(!!sym(col_name) := 1)
+
+  data <- data %>% left_join(df_for_join, by = "LopNr")
+
+  data[col_name][is.na(data[col_name])] <- 0
+  data[[col_name]] <- ynf(data[[col_name]])
+
+  return(data)
+}
+
+
+
+
+
 ### Cancer types
 adsl4 <- adsl3 %>%
   baseline("ALL") %>%
