@@ -1,3 +1,19 @@
+### Temporary provoking factors
+adsl6 <- adsl5 %>%
+  baseline_3m("Nervous_system_surgery") %>%
+  baseline_3m("ENT_surgery") %>%
+  baseline_3m("Heart_vessel_surgery") %>%
+  baseline_3m("Thoracic_lung_surgery") %>%
+  baseline_3m("Gastrointestinal_surgery") %>%
+  baseline_3m("Urinary_genital_surgery") %>%
+  baseline_3m("Musculoskeletal_surgery") %>%
+  baseline_3m("Obstetrical_surgery") %>%
+  baseline_3m("Central_venous_catheter") %>%
+  baseline_3m("Lower_extremity_fracture") %>%
+  baseline_3m("Trauma") %>%
+  baseline_3m("Hormone_replacement_therapy")
+
+
 
 # Temporary provoking factors - Surgical interventions
 get_intervention_all(NAME = "Nervous_system_surgery", KVÅ_CODE = "^AA[A-F][0-9]{2}|^AAH[1-9][0-9]|^AAJ[0-9]{2}|^AAK10|^AAK40|^AAK99|^AA[LMNP][0-9]{2}|^AAU00|^AAW(0[1-9]|[1-9][0-9])")
