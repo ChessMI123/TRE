@@ -1,3 +1,59 @@
+# Fix formats and wrap up the data
+adsl <- adsl10 %>%
+  mutate(sex=factor(Kon, level=1:2, labels=c("Male", "Female")),
+         Birth_region = factor(Birth_region, levels = c("Sweden","Nordic (excl Sweden)","Europe (excl Nordic)","Other")),
+         excl_factor= factor(excl,
+                             levels=0:6,
+                             labels=c("Included",
+                                      "Excluded due to baseline date not identified",
+                                      "Excluded due to heart failure before 2009 or on last day of follow-up",
+                                      "Excluded due to death on the same day as heart failure",
+                                      "Excluded due to reused personal identification number",
+                                      "Excluded due to CIED implantation before baseline",
+                                      "Excluded due to first ever recorded CIED after baseline is Utbyte")
+         ),
+         education_gr= case_when(education_level==1~1,
+                                 education_level<5 ~2,
+                                 education_level>=5~3,
+                                 TRUE~NA),
+         education_factor= factor(education_gr, levels=1:3,labels=c("0-9 Years","9-12 Years","More than 12 Years")),
+
+         age_group = case_when(
+                     age < 65 ~1,
+                     age < 75 ~2,
+                     age < 85 ~3,
+                     age >= 85 ~4
+         ),
+
+         age_group_factor = factor(age_group, levels = 1:4, labels = c("<65","65-74","75-84","¤{unicode '2265'x}85")),
+
+         HF_type = case_when(
+           LVEF_PERCENT < 40 ~1,
+           LVEF_PERCENT >=40 & LVEF_PERCENT < 50 ~2,
+           LVEF_PERCENT >=50  ~3,
+           TRUE ~ NA),
+
+         HF_factor = factor(HF_type, levels = 1:3, labels = c("HFrEF","HFmrEF","HFpEF")),
+
+         trt_period = case_when(lisayr <=2012 ~1,
+                                lisayr >=2013 & lisayr<=2016~2,
+                                lisayr >=2017 & lisayr<=2020~3,
+                                lisayr >=2021 & lisayr<=2023~4),
+
+         trt_period_factor= factor(trt_period, levels=1:4, labels=c("2009-2012", "2013-2016", "2017-2020", "2021-2023")),
+
+
+         income_quintile_factor= factor(income_quintile, levels=1:5,labels=c("1st quintile", "2nd quintile", "3rd quintile", "4th quintile", "5th quintile"))
+
+
+  )
+
+
+
+
+
+
+
 check <- Pop3 %>%
   filter(treatment == "DOAC", !LopNr %in% excl3$LopNr) %>%
   inner_join(DOAC %>% select(LopNr, EDATUM), by = "LopNr") %>%
