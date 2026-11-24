@@ -1,3 +1,117 @@
+### Comorbidities
+adsl3 <- adsl2 %>%
+  baseline_disease("MI") %>%
+  baseline_disease("angina") %>%
+  baseline_disease("valvular") %>%
+  baseline_disease("card_arrest") %>%
+  baseline_disease("AFib") %>%
+  baseline_disease("stroke") %>%
+  baseline_disease("PAD") %>%
+  baseline_disease("Hypertension") %>%
+  baseline_disease("Diabetes") %>%
+  baseline_disease("Conduct_dis") %>%
+  baseline_disease("VTE")
+
+
+
+### Prior Medications
+adsl4 <- adsl3 %>%
+  baseline_medication("BETA_BLOCKER") %>%
+  baseline_medication("RAS_inhibitors") %>%
+  baseline_medication("MRA") %>%
+  baseline_medication("ARNI") %>%
+  baseline_medication("SGLT2")
+
+
+
+baseline_7y <- function(data, Name) {
+
+  message(Name)
+  file_path <- file.path(der, paste0("EVENTS_", Name, ".parquet"))
+
+  if (!file.exists(file_path)) {
+    file_path <- file.path(meds, paste0("EVENTS_", Name, "_prescription.parquet"))
+  }
+
+  if (!file.exists(file_path)) {
+    message("File not found: ", file_path)
+    return(data)
+  }
+
+  tmp <- read_parquet(file_path)
+
+  date_var <- if ("UTDATUM" %in% names(tmp)) "UTDATUM" else if ("EDATUM" %in% names(tmp)) "EDATUM" else paste0("EDATUM_", Name)
+
+  tmp <- tmp %>%
+    transmute(LopNr, UTDATUM = .data[[date_var]])
+
+  col_name <- paste0("bl_7y_", Name)
+  if (col_name %in% colnames(data)) {data <- data %>% select(-all_of(col_name))}
+
+  df_adsl <- data %>%
+    left_join(tmp, by = "LopNr")
+
+  df_temporary <- df_adsl %>%
+    filter(UTDATUM >= baseline %m-% years(7), UTDATUM <= baseline)
+
+  df_for_join <- data.frame(LopNr = unique(df_temporary$LopNr)) %>%
+    mutate(!!sym(col_name) := 1)
+
+  data <- data %>% left_join(df_for_join, by = "LopNr")
+
+  data[col_name][is.na(data[col_name])] <- 0
+  data[[col_name]] <- ynf(data[[col_name]])
+
+  return(data)
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### Add death
+adsl5 <- adsl4 %>%
+                  left_join(open_dataset(file.path(der,"CV_death_ULORSAK.parquet"))%>% collect() %>% select(LopNr,CVdeath), by="LopNr") %>%
+                  left_join(open_dataset(file.path(der,"SCD_death_ULORSAK.parquet"))%>% collect() %>% select(LopNr,SCDdeath), by="LopNr")
+
+
+adsl6 <- adsl5 %>% mutate(deathdt = if_else(deathdt <= baseline, baseline, deathdt),
+                          endofFU=ymd("2023-12-31"),
+                          cens=pmin(endofFU,deathdt, na.rm=TRUE),
+                          censyrs = as.numeric(cens - baseline)/365.25,
+                          death = case_when(!is.na(deathdt) & deathdt<=endofFU~1,
+                                            !is.na(deathdt) & deathdt>endofFU ~0,
+                                             is.na(deathdt)                   ~0),
+                          deathyrs=as.numeric(case_when(death==1~(deathdt-baseline)/365.25,
+                                                        death==0~(endofFU-baseline)/365.25)),
+                          deathyrs = if_else(deathyrs == 0,1/365.25,deathyrs),
+                          cv_deathyrs_comprisk = deathyrs,
+                          cv_death_comprisk = case_when(death == 0 ~ 0,
+                                               death == 1 & CVdeath == 1~1,
+                                               death == 1 ~ 2),
+                          scd_deathyrs_comprisk = deathyrs,
+                          scd_death_comprisk = case_when(death == 0 ~ 0,
+                                               death == 1 & SCDdeath == 1~1,
+                                               death == 1 ~ 2))
+
+
+
 Pop3 <- Pop2 %>%
   mutate(excl = case_when(excl == 0 & LopNr %in% c(1564728, 2499503, 3124008, 3330799, 3338217, 3392967, 3529066, 3544843) ~ 3, TRUE ~ excl))
 
