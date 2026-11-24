@@ -1,3 +1,9 @@
+prophylactic = case_when(
+  ATC == "B01AB04" & ANTAL <= 5 ~ 1,
+  TRUE ~ NA_real_
+)
+
+
 # Compare baseline dates between Pop and Pop_new
 check <- Pop %>%
   select(LopNr, baseline_old = baseline) %>%
