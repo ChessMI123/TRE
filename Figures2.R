@@ -1,3 +1,25 @@
+
+# Temporary provoking factors - Surgical interventions
+get_intervention_all(NAME = "Nervous_system_surgery", KVÅ_CODE = "^AA[A-F][0-9]{2}|^AAH[1-9][0-9]|^AAJ[0-9]{2}|^AAK10|^AAK40|^AAK99|^AA[LMNP][0-9]{2}|^AAU00|^AAW(0[1-9]|[1-9][0-9])")
+get_intervention_all(NAME = "ENT_surgery", KVÅ_CODE = "^D[A-HJ][A-W]|^DKW|^DL[D-W]|^D[MNPQW][A-W]")
+get_intervention_all(NAME = "Heart_vessel_surgery", KVÅ_CODE = "^F")
+get_intervention_all(NAME = "Thoracic_lung_surgery", KVÅ_CODE = "^G[ABDEW][A-W]|^GCA")
+get_intervention_all(NAME = "Gastrointestinal_surgery", KVÅ_CODE = "^J")
+get_intervention_all(NAME = "Urinary_genital_surgery", KVÅ_CODE = "^K|^L")
+get_intervention_all(NAME = "Musculoskeletal_surgery", KVÅ_CODE = "^N")
+get_intervention_all(NAME = "Obstetrical_surgery", KVÅ_CODE = "^M")
+get_intervention_all(NAME = "Central_venous_catheter", KVÅ_CODE = "^TPH05|^TPH15|^TPH20|^TPX10|^TPW99|^SP(10[5-9]|1[1-9][0-9]|[2-9][0-9]{2})")
+
+# Temporary provoking factors - Diagnoses
+get_disease_all(Disease = "Lower_extremity_fracture", ICD10 = "^S72|^S82|^S92|^T12")
+get_disease_all(Disease = "Trauma", ICD10 = "^V(0[1-9]|[1-9][0-9])|^W[0-9]{2}|^X[0-5][0-9]")
+
+# Temporary provoking factors - Medications
+get_medication_all(NAME = "Hormone_replacement_therapy", ICD_CODE = "G03C|G03F")
+
+
+
+
 ### Prior medications
 adsl5 <- adsl4 %>%
   baseline_6m("Antiplatelet") %>%
