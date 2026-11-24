@@ -1,5 +1,5 @@
 Pop3 <- Pop2 %>%
-  mutate(excl = case_when(excl == 0 & LopNr %in% c(234324, 234234) ~ 3, TRUE ~ excl))
+  mutate(excl = case_when(excl == 0 & LopNr %in% c(1564728, 2499503, 3124008, 3330799, 3338217, 3392967, 3529066, 3544843) ~ 3, TRUE ~ excl))
 
 # DOAC
 DOACkoll <- DOAC %>%
