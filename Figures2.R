@@ -1,3 +1,8 @@
+get_medication_all(NAME = "Antiplatelet", ICD_CODE = "B01AC")
+get_medication_all(NAME = "PPI",          ICD_CODE = "A02BC")
+get_medication_all(NAME = "Statins",      ICD_CODE = "C10AA")
+
+
 
 baseline <- function(data, Name) {
 
