@@ -1,3 +1,10 @@
+excl3 <- excl3 %>%
+  mutate(baseline = if_else(treatment_start <= EDATUM_TKI,
+                            pmax(INDATUM_VTE, EDATUM_TKI),
+                            baseline))
+
+
+
 check <- adsl %>%
   mutate(n_cancer = rowSums(across(c(bl_ALL, bl_Breast_cancer, bl_CML, bl_GIST,
                                     bl_Kidney_cancer, bl_Lung_cancer, bl_pNET,
