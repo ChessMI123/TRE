@@ -1,3 +1,18 @@
+PopDOAC <- Pop3 %>%
+  filter(excl == 0 & treatment == "DOAC")
+
+check <- PopDOAC %>%
+  inner_join(LMWH, by = "LopNr") %>%
+  arrange(LopNr, EDATUM)
+
+
+check <- PopDOAC %>%
+  inner_join(LMWH, by = "LopNr") %>%
+  filter(EDATUM > baseline) %>%
+  mutate(days_after_baseline = as.numeric(EDATUM - baseline)) %>%
+  arrange(LopNr, EDATUM)
+
+
 excl3 <- excl3 %>%
   mutate(baseline = if_else(treatment_start <= EDATUM_TKI,
                             pmax(INDATUM_VTE, EDATUM_TKI),
