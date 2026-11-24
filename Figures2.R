@@ -1,3 +1,37 @@
+# Compare baseline dates between Pop and Pop_new
+check <- Pop %>%
+  select(LopNr, baseline_old = baseline) %>%
+  inner_join(Pop_new %>% select(LopNr, baseline_new = baseline), by = "LopNr") %>%
+  filter(baseline_old != baseline_new) %>%
+  mutate(days_diff = as.numeric(baseline_new - baseline_old)) %>%
+  arrange(LopNr)
+
+# Newly included patients
+new_patients <- Pop_new %>%
+  anti_join(Pop, by = "LopNr")
+
+# Patients no longer included
+removed_patients <- Pop %>%
+  anti_join(Pop_new, by = "LopNr")
+
+# Summary
+nrow(Pop)               # Original population
+nrow(Pop_new)           # Updated population
+nrow(check)             # Patients with changed baseline
+nrow(new_patients)      # Newly included patients
+nrow(removed_patients)  # Patients no longer included
+
+# View results
+View(check)
+View(new_patients)
+View(removed_patients)
+
+
+
+
+
+
+
 PopDOAC <- Pop3 %>%
   filter(excl == 0 & treatment == "DOAC")
 
