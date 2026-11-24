@@ -1,3 +1,17 @@
+# Add switching date
+Pop <- Pop %>%
+  left_join(
+    Pop %>%
+      select(LopNr, baseline, treatment) %>%
+      inner_join(AC %>% select(LopNr, EDATUM_AC, treatment_AC = treatment), by = "LopNr") %>%
+      filter(EDATUM_AC > baseline, treatment_AC != treatment) %>%
+      group_by(LopNr) %>%
+      summarise(switch = min(EDATUM_AC), .groups = "drop"),
+    by = "LopNr"
+  )
+
+
+
 prophylactic = case_when(
   ATC == "B01AB04" & ANTAL <= 5 ~ 1,
   TRUE ~ NA_real_
