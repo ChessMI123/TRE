@@ -1,3 +1,11 @@
+check <- adsl %>%
+  mutate(n_cancer = rowSums(across(c(bl_ALL, bl_Breast_cancer, bl_CML, bl_GIST,
+                                    bl_Kidney_cancer, bl_Lung_cancer, bl_pNET,
+                                    bl_Thyroid_cancer, bl_Urothelial_cancer),
+                                  ~ .x == "Yes"), na.rm = TRUE)) %>%
+  filter(n_cancer > 1)
+
+
 # Demographics
 attr(adsl$age, "label") <- "Age at baseline"
 attr(adsl$age_group_factor, "label") <- "Age group at baseline"
