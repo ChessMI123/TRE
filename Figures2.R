@@ -1,17 +1,20 @@
 ### Comorbidities
+### Comorbidities
 adsl3 <- adsl2 %>%
-  baseline_disease("MI") %>%
-  baseline_disease("angina") %>%
-  baseline_disease("valvular") %>%
-  baseline_disease("card_arrest") %>%
-  baseline_disease("AFib") %>%
-  baseline_disease("stroke") %>%
-  baseline_disease("PAD") %>%
-  baseline_disease("Hypertension") %>%
-  baseline_disease("Diabetes") %>%
-  baseline_disease("Conduct_dis") %>%
-  baseline_disease("VTE")
-
+  baseline_7y("Hypertension") %>%
+  baseline_7y("HF") %>%
+  baseline_7y("COPD") %>%
+  baseline_7y("Diabetes") %>%
+  baseline_7y("Renal") %>%
+  baseline_7y("Liver") %>%
+  baseline_7y("Ischemic_heart_disease") %>%
+  baseline_7y("Peripheral") %>%
+  baseline_7y("Ischemicstroke") %>%
+  baseline_7y("Hemorrhagicstroke") %>%
+  baseline_7y("CTD") %>%
+  baseline_7y("IBD") %>%
+  baseline_7y("PUD") %>%
+  baseline_7y("AFib")
 
 
 ### Prior Medications
