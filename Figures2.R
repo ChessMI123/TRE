@@ -1,3 +1,70 @@
+# Demographics
+attr(adsl$age, "label") <- "Age at baseline"
+attr(adsl$age_group_factor, "label") <- "Age group at baseline"
+attr(adsl$Birth_region, "label") <- "Birth region"
+attr(adsl$sex, "label") <- "Sex"
+attr(adsl$education_factor, "label") <- "Education level"
+attr(adsl$income_quintile_factor, "label") <- "Income quintile (Based on KPI adjusted incomes)"
+attr(adsl$trt_period_factor, "label") <- "Treatment period"
+
+# Comorbidities (within 7 years prior to or at baseline)
+attr(adsl$bl_7y_Hypertension, "label")           <- "Hypertension"
+attr(adsl$bl_7y_HF, "label")                     <- "Heart failure"
+attr(adsl$bl_7y_COPD, "label")                   <- "Chronic obstructive pulmonary disease"
+attr(adsl$bl_7y_Diabetes, "label")               <- "Diabetes mellitus"
+attr(adsl$bl_7y_Renal, "label")                  <- "Renal disease"
+attr(adsl$bl_7y_Liver, "label")                  <- "Liver disease"
+attr(adsl$bl_7y_Ischemic_heart_disease, "label") <- "Ischemic heart disease"
+attr(adsl$bl_7y_Peripheral, "label")             <- "Peripheral arterial disease"
+attr(adsl$bl_7y_Ischemicstroke, "label")         <- "Ischemic stroke"
+attr(adsl$bl_7y_Hemorrhagicstroke, "label")      <- "Hemorrhagic stroke"
+attr(adsl$bl_7y_CTD, "label")                    <- "Systemic connective tissue disorders"
+attr(adsl$bl_7y_IBD, "label")                    <- "Inflammatory bowel disease"
+attr(adsl$bl_7y_PUD, "label")                    <- "Peptic ulcer disease"
+attr(adsl$bl_7y_AFib, "label")                   <- "Atrial fibrillation"
+
+# Cancer types (prior to or at baseline)
+attr(adsl$bl_ALL, "label")                       <- "Acute lymphatic leukemia (ALL)"
+attr(adsl$bl_Breast_cancer, "label")             <- "Breast cancer"
+attr(adsl$bl_CML, "label")                       <- "Chronic myeloid leukemia (CML)"
+attr(adsl$bl_GIST, "label")                      <- "Gastrointestinal stromal tumor (GIST)"
+attr(adsl$bl_Kidney_cancer, "label")             <- "Kidney cancer"
+attr(adsl$bl_Lung_cancer, "label")               <- "Lung cancer"
+attr(adsl$bl_pNET, "label")                      <- "Pancreatic neuroendocrine tumor (pNET)"
+attr(adsl$bl_Thyroid_cancer, "label")            <- "Thyroid cancer"
+attr(adsl$bl_Urothelial_cancer, "label")         <- "Urothelial cancer"
+
+# Prior medications (within 6 months prior to or at baseline)
+attr(adsl$bl_6m_Antiplatelet, "label")           <- "Antiplatelet treatment"
+attr(adsl$bl_6m_PPI, "label")                    <- "Proton pump inhibitors"
+attr(adsl$bl_6m_Statins, "label")                <- "Statins"
+
+# Temporary provoking factors (within 3 months prior to or at baseline)
+attr(adsl$bl_3m_Nervous_system_surgery, "label")       <- "Surgery on the nervous system including cranial nerves"
+attr(adsl$bl_3m_ENT_surgery, "label")                  <- "Ear, nose and throat surgery"
+attr(adsl$bl_3m_Heart_vessel_surgery, "label")         <- "Surgery on the heart and large vessels"
+attr(adsl$bl_3m_Thoracic_lung_surgery, "label")         <- "Thoracic and lung procedures"
+attr(adsl$bl_3m_Gastrointestinal_surgery, "label")      <- "Gastrointestinal surgery"
+attr(adsl$bl_3m_Urinary_genital_surgery, "label")       <- "Urinary tract and genital surgery"
+attr(adsl$bl_3m_Musculoskeletal_surgery, "label")       <- "Musculoskeletal surgery"
+attr(adsl$bl_3m_Obstetrical_surgery, "label")            <- "Obstetrical surgery"
+attr(adsl$bl_3m_Central_venous_catheter, "label")       <- "Central venous catheter and implantable venous port"
+attr(adsl$bl_3m_Lower_extremity_fracture, "label")      <- "Lower extremity fracture"
+attr(adsl$bl_3m_Trauma, "label")                       <- "Trauma"
+attr(adsl$bl_3m_Hormone_replacement_therapy, "label")   <- "Hormone replacement therapy"
+
+
+save(adsl, file = file.path(res,"adsl.RData"))
+write_xlsx(adsl, path = file.path(res,"adsl.xlsx"))
+
+
+
+
+
+
+
+
+
 # Fix formats and wrap up the data
 adsl <- adsl10 %>%
   mutate(sex=factor(Kon, level=1:2, labels=c("Male", "Female")),
