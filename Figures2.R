@@ -1,9 +1,8 @@
-Pop3 %>%
-  filter(treatment == "DOAC", !LopNr %in% excl3) %>%
+check <- Pop3 %>%
+  filter(treatment == "DOAC", !LopNr %in% excl3$LopNr) %>%
   inner_join(DOAC %>% select(LopNr, EDATUM), by = "LopNr") %>%
-  filter(EDATUM < baseline) %>%
+  filter(EDATUM >= baseline %m-% months(3), EDATUM < baseline) %>%
   arrange(LopNr, EDATUM)
-
 
 
 Pop3 <- Pop2 %>%
