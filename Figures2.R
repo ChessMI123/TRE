@@ -1,3 +1,20 @@
+get_disease_all(Disease = "Major_bleeding", Register = c("SV", "CDR"), Position = 2,
+                ICD10 = paste0(
+                  "^I60|^I61|^I62|",                 # Intracranial bleeding, non-traumatic
+                  "^S064|^S065|^S066|",              # Intracranial bleeding, traumatic
+                  "^I312|",                          # Hemopericardium
+                  "^I850|^I983|^K250|^K252|^K254|^K256|^K260|^K262|^K264|^K266|^K270|^K272|^K274|^K276|^K280|^K282|^K284|^K286|^K290|^K625|^K920|^K921|^K922|", # Gastrointestinal bleeding
+                  "^R04|^R58|^J942|^S271|^H922|",    # Airway and other bleeding
+                  "^D629|",                          # Anemia due to bleeding
+                  "^N920|^N921|^N922|^N923|^N924|^N93|^N950|^N421|^N501A|", # Genital bleeding
+                  "^R31|",                           # Hematuria
+                  "^H113|^H313|^H356|^H431|^H450"    # Bleeding in the eye
+                ))
+
+
+
+
+
 relocate(HDIA, all_of(paste0("DIA", 1:48)), .after = last_col())
 test <- parquet_get_dia_events(
   REG = "CDR",
