@@ -1,3 +1,15 @@
+Pop <- Pop %>%
+  mutate(
+    END_AC_adj = if_else(
+      !is.na(deathd) & deathd > END_AC & deathd <= END_AC + 5,
+      deathd, END_AC
+    ),
+    treatment_end = pmin(switch, END_TKI, END_AC_adj, na.rm = TRUE)
+  )
+
+
+
+
 # Patients newly included in Pop
 Pop_added <- Pop %>%
   anti_join(Pop_old, by = "LopNr")
