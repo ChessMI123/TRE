@@ -1,4 +1,13 @@
+test <- parquet_get_dia_events(
+  REG = "CDR",
+  Name = "Death_bleeding",
+  ICD_string = "^I60",
+  position = 1,
+  Year_min = 2018,
+  Year_max = 2026
+)
 
+View(test)
 # Identify patients in Pop with prophylactic LMWH prescriptions
 Pop_prophylactic <- LMWH %>%
   filter(prophylactic == 1) %>%
