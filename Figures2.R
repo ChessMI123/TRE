@@ -1,3 +1,28 @@
+
+# Population
+Pop <- VTE %>%
+  inner_join(TKI, by = "LopNr", relationship = "many-to-many") %>%
+  inner_join(AC, by = "LopNr", relationship = "many-to-many") %>%
+  mutate(baseline = START_AC) %>%
+  filter(
+    age >= 18,                              # Age >= 18
+    START_AC >= START_TKI,                  # AC initiated on or after TKI initiation
+    START_AC >= INDATUM_VTE,                # AC initiated on or after VTE diagnosis
+    EDATUM_TKI <= baseline,                 # No future TKI prescriptions
+    EDATUM_AC == baseline,                  # AC prescription at baseline
+    EDATUM_AC <= EDATUM_TKI + 60,           # Prescriptions within 60 days
+    baseline <= UTDATUM_VTE + 30,           # Within 30 days of discharge
+    END_AC >= baseline,                     # AC still ongoing at baseline
+    END_TKI >= baseline,                    # TKI still ongoing at baseline
+    UTDATUM_VTE < as.Date("2025-10-01")
+  ) %>%
+  arrange(LopNr, baseline, desc(EDATUM_TKI)) %>%
+  group_by(LopNr) %>%
+  slice(1) %>%
+  ungroup()
+
+
+
 mutate(baseline = pmax(EDATUM_AC, EDATUM_TKI)) %>%
 filter(
   age >= 18,
