@@ -1,3 +1,5 @@
+mutate(treatment_end = pmin(END_TKI, END_AC, switch, na.rm = TRUE))
+
 # Population
 Pop <- VTE %>%
   inner_join(TKI, by = "LopNr", relationship = "many-to-many") %>%
