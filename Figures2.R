@@ -1,3 +1,27 @@
+read <- open_dataset(file.path(der, "EVENTS_Major_bleeding.parquet")) %>%
+  collect() %>%
+  mutate(
+    bleeding_type = case_when(
+      if_any(c(HDIA, DIA1:DIA30), ~ grepl("^I60|^I61|^I62", .x)) ~ "N_intracranial_bleeding",
+      if_any(c(HDIA, DIA1:DIA30), ~ grepl("^S064|^S065|^S066", .x)) ~ "T_intracranial_bleeding",
+      if_any(c(HDIA, DIA1:DIA30), ~ grepl("^I312", .x)) ~ "Hemopericardium",
+      if_any(c(HDIA, DIA1:DIA30), ~ grepl("^I850|^I983|^K250|^K252|^K254|^K256|^K260|^K262|^K264|^K266|^K270|^K272|^K274|^K276|^K280|^K282|^K284|^K286|^K290|^K625|^K920|^K921|^K922", .x)) ~ "Gastrointestinalbleeding",
+      if_any(c(HDIA, DIA1:DIA30), ~ grepl("^R04|^R58|^J942|^S271|^H922", .x)) ~ "Airway_bleeding",
+      if_any(c(HDIA, DIA1:DIA30), ~ grepl("^D629", .x)) ~ "Anemia_due_to_bleeding",
+      if_any(c(HDIA, DIA1:DIA30), ~ grepl("^N920|^N921|^N922|^N923|^N924|^N93|^N950|^N421|^N501A", .x)) ~ "Genital_bleeding",
+      if_any(c(HDIA, DIA1:DIA30), ~ grepl("^R31", .x)) ~ "Hematuria",
+      if_any(c(HDIA, DIA1:DIA30), ~ grepl("^H113|^H313|^H356|^H431|^H450", .x)) ~ "Eye_bleeding",
+      TRUE ~ NA_character_
+    )
+  )
+
+
+
+
+
+
+
+
 mutate(treatment_end = pmin(END_TKI, END_AC, switch, na.rm = TRUE))
 
 # Population
