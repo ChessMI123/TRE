@@ -1,3 +1,30 @@
+library(lubridate)
+
+treatment_periods_TKI <- function(data) {
+
+  data %>%
+    filter(!is.na(EDATUM)) %>%
+    arrange(LopNr, EDATUM) %>%
+    group_by(LopNr) %>%
+    mutate(
+      previous_end = lag(EDATUM %m+% months(3)),
+      new_episode = if_else(
+        is.na(previous_end) | EDATUM > previous_end,
+        1L, 0L
+      ),
+      episode = cumsum(new_episode)
+    ) %>%
+    group_by(LopNr, episode) %>%
+    mutate(
+      START_TKI = min(EDATUM),
+      END_TKI   = max(EDATUM) %m+% months(3) - 1
+    ) %>%
+    ungroup()
+}
+
+
+
+
 get_disease_all(Disease = "Major_bleeding", Register = c("SV", "CDR"), Position = 2,
                 ICD10 = paste0(
                   "^I60|^I61|^I62|",                 # Intracranial bleeding, non-traumatic
