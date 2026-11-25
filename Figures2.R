@@ -1,4 +1,72 @@
 
+
+# Save old population
+Pop_old <- Pop
+
+# Population
+Pop <- VTE %>%
+  inner_join(TKI, by = "LopNr", relationship = "many-to-many") %>%
+  inner_join(AC, by = "LopNr", relationship = "many-to-many") %>%
+  mutate(baseline = pmax(EDATUM_AC, EDATUM_TKI)) %>%
+  filter(
+    age >= 18,
+    EDATUM_AC <= EDATUM_TKI + 60,        # Maximum 60 days after TKI
+    EDATUM_AC >= INDATUM_VTE - 45,       # VTE no later than 45 days after AC
+    baseline <= UTDATUM_VTE + 30,        # Concomitant treatment within 30 days of discharge
+    treatment_start >= EDATUM_TKI - 10,  # Maximum 10 days full-dose AC before TKI
+    UTDATUM_VTE < as.Date("2025-10-01")
+  ) %>%
+  arrange(LopNr, baseline, EDATUM_TKI, EDATUM_AC) %>%
+  group_by(LopNr) %>%
+  slice(1) %>%
+  ungroup()
+
+
+# Compare old and new population
+
+# Newly included patients
+Pop_added <- Pop %>%
+  anti_join(Pop_old, by = "LopNr")
+
+# No longer included patients
+Pop_removed <- Pop_old %>%
+  anti_join(Pop, by = "LopNr")
+
+# Patients with a changed baseline
+Pop_changed <- Pop %>%
+  inner_join(
+    Pop_old %>% select(LopNr, baseline_old = baseline),
+    by = "LopNr"
+  ) %>%
+  filter(baseline != baseline_old) %>%
+  mutate(diff_days = as.numeric(baseline - baseline_old))
+
+# Patients with TKI initiation after AC prescription
+Pop_TKI_after_AC <- Pop %>%
+  filter(EDATUM_TKI > EDATUM_AC) %>%
+  mutate(days_AC_before_TKI = as.numeric(EDATUM_TKI - EDATUM_AC))
+
+# All affected patients
+Pop_affected <- bind_rows(
+  Pop_added %>% mutate(change = "Newly included"),
+  Pop_removed %>% mutate(change = "Excluded"),
+  Pop_changed %>% mutate(change = "Changed baseline")
+) %>%
+  arrange(LopNr)
+
+# Summary
+data.frame(
+  Old_population = nrow(Pop_old),
+  New_population = nrow(Pop),
+  Newly_included = nrow(Pop_added),
+  Excluded = nrow(Pop_removed),
+  Changed_baseline = nrow(Pop_changed),
+  TKI_after_AC = nrow(Pop_TKI_after_AC)
+)
+
+# Inspect affected patients
+View(Pop_affected)
+View(Pop_TKI_after_AC)
 # Check if all LopNr are in Pop_excluded
 all(exclLMWH %in% Pop_excluded$LopNr)
 
