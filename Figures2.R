@@ -1,4 +1,20 @@
 
+# Identify patients in Pop with prophylactic LMWH prescriptions
+Pop_prophylactic <- LMWH %>%
+  filter(prophylactic == 1) %>%
+  semi_join(Pop, by = "LopNr")
+
+# Unique LopNr
+unique(Pop_prophylactic$LopNr)
+
+# Number of patients
+n_distinct(Pop_prophylactic$LopNr)
+
+View(Pop_prophylactic)
+
+
+
+
 # Patients with a changed baseline date
 Pop_changed <- Pop %>%
   select(LopNr, baseline_old = baseline) %>%
