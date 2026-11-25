@@ -1,3 +1,33 @@
+
+
+bleeding_types <- c(
+  "Death_bleeding",
+  "N_intracranial_bleeding",
+  "T_intracranial_bleeding",
+  "Hemopericardium",
+  "Gastrointestinalbleeding",
+  "Airway_bleeding",
+  "Anemia_due_to_bleeding",
+  "Genital_bleeding",
+  "Hematuria",
+  "Eye_bleeding"
+)
+
+Major_bleeding <- bind_rows(
+  lapply(bleeding_types, function(x) {
+    open_dataset(file.path(der, paste0("EVENTS_", x, ".parquet"))) %>%
+      collect() %>%
+      mutate(bleeding_type = x)
+  })
+) %>%
+  arrange(LopNr, INDATUM)
+
+write_parquet(
+  Major_bleeding,
+  file.path(der, "EVENTS_Major_bleeding.parquet")
+)
+
+
 read <- open_dataset(file.path(der, "EVENTS_Major_bleeding.parquet")) %>%
   collect() %>%
   mutate(
