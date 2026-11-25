@@ -1,4 +1,20 @@
-
+# Population
+Pop <- VTE %>%
+  inner_join(TKI, by = "LopNr", relationship = "many-to-many") %>%
+  inner_join(AC, by = "LopNr", relationship = "many-to-many") %>%
+  mutate(baseline = pmax(treatment_start, EDATUM_TKI)) %>%
+  filter(
+    age >= 18,
+    treatment_start <= EDATUM_TKI + 60,  # Maximum 60 days after TKI
+    treatment_start >= INDATUM_VTE - 45, # VTE no later than 45 days after AC initiation
+    baseline <= UTDATUM_VTE + 30,        # Concomitant treatment within 30 days of discharge
+    treatment_start >= EDATUM_TKI - 10,  # Maximum 10 days full-dose AC before TKI
+    UTDATUM_VTE < as.Date("2025-10-01")
+  ) %>%
+  arrange(LopNr, baseline, EDATUM_TKI, EDATUM_AC) %>%
+  group_by(LopNr) %>%
+  slice(1) %>%
+  ungroup()
 
 # Save old population
 Pop_old <- Pop
