@@ -1,3 +1,48 @@
+####################################################################################################
+# ¤ Load adsl
+load(file.path(res,"adsl.RData"))
+
+##########################################################
+##########################################################
+#### table 0 inclusions/exclusions                    ####
+##########################################################
+##########################################################
+
+### Individuals with missing diagnosis not excluded
+T0 <- as.data.frame(table1::table1(~excl_factor, data = adsl))
+## clean up
+colnames(T0)<- c("incl_excl", "Overall")
+T0<- T0[-2,] #remove unnecessary text. IMPORTANT: DONT RUNT THIS ROW MORE THAN ONCE!!
+## save to csv to read in sas when creating report
+write_xlsx(x = T0, path = file.path(res,"T0.xlsx"))
+
+
+
+
+
+#############################################################
+#############################################################
+#### Table 1.1  Baseline table (FAS)                      ####
+#############################################################
+#############################################################
+
+T1 <- adsl %>% filter(FAS==1)
+
+### Add treatment vars here!, ""
+all_vars<- c("sex","age","age_group_factor","education_factor", "income_quintile_factor","Birth_region","trt_period_factor","bl_MI", "bl_angina", "bl_valvular","bl_card_arrest","bl_AFib","bl_str
+
+t1f<- as.formula(paste("~", paste(all_vars, collapse = "+")))
+
+
+tab1<- as.data.frame(table1::table1(t1f , data = T1, render.continuous=c("mean (sd) ; median [min-max]")))
+tab1$order<- 1:nrow(tab1)
+write_xlsx(tab1, path = file.path(res,"T1.xlsx"))
+
+
+
+
+
+
 Pop <- Pop %>%
   mutate(
     END_AC_adj = if_else(
