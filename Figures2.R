@@ -1,3 +1,17 @@
+mutate(baseline = pmax(EDATUM_AC, EDATUM_TKI)) %>%
+filter(
+  age >= 18,
+  abs(as.numeric(EDATUM_AC - EDATUM_TKI)) <= 60,
+  START_AC >= INDATUM_VTE - 45,
+  baseline <= UTDATUM_VTE + 30,
+  START_AC >= START_TKI - 10,
+  END_AC >= baseline,
+  END_TKI >= baseline,
+  UTDATUM_VTE < as.Date("2025-10-01")
+)
+
+
+
 ####################################################################################################
 # ¤ Load adsl
 load(file.path(res,"adsl.RData"))
