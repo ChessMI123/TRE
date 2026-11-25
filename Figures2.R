@@ -1,3 +1,18 @@
+
+# Check if all LopNr are in Pop_excluded
+all(exclLMWH %in% Pop_excluded$LopNr)
+
+# LopNr that are in Pop_excluded
+intersect(exclLMWH, Pop_excluded$LopNr)
+
+# LopNr that are NOT in Pop_excluded
+setdiff(exclLMWH, Pop_excluded$LopNr)
+
+# Number of LopNr that are NOT in Pop_excluded
+length(setdiff(exclLMWH, Pop_excluded$LopNr))
+
+
+
 # Add switching date
 Pop <- Pop %>%
   left_join(
