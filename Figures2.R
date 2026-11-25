@@ -1,3 +1,49 @@
+# Patients newly included in Pop
+Pop_added <- Pop %>%
+  anti_join(Pop_old, by = "LopNr")
+
+# Patients no longer included in Pop
+Pop_removed <- Pop_old %>%
+  anti_join(Pop, by = "LopNr")
+
+# Patients with a changed baseline date
+Pop_changed <- Pop %>%
+  inner_join(
+    Pop_old %>% select(LopNr, baseline_old = baseline),
+    by = "LopNr"
+  ) %>%
+  filter(baseline != baseline_old) %>%
+  mutate(diff_days = as.numeric(baseline - baseline_old)) %>%
+  arrange(LopNr)
+
+# All affected patients
+Pop_affected <- bind_rows(
+  Pop_added   %>% mutate(change = "Newly included"),
+  Pop_removed %>% mutate(change = "Excluded"),
+  Pop_changed %>% mutate(change = "Changed baseline")
+) %>%
+  arrange(LopNr)
+
+# Summary of changes
+data.frame(
+  Old_population     = nrow(Pop_old),
+  New_population     = nrow(Pop),
+  Newly_included     = nrow(Pop_added),
+  Excluded           = nrow(Pop_removed),
+  Changed_baseline   = nrow(Pop_changed),
+  Earlier_baseline   = sum(Pop_changed$diff_days < 0),
+  Later_baseline     = sum(Pop_changed$diff_days > 0)
+)
+
+# Inspect affected patients
+View(Pop_added)
+View(Pop_removed)
+View(Pop_changed)
+View(Pop_affected)
+
+
+
+
 library(lubridate)
 
 treatment_periods_TKI <- function(data) {
