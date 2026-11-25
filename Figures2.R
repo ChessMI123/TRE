@@ -1,3 +1,4 @@
+relocate(HDIA, all_of(paste0("DIA", 1:48)), .after = last_col())
 test <- parquet_get_dia_events(
   REG = "CDR",
   Name = "Death_bleeding",
