@@ -1,3 +1,41 @@
+
+# Patients with a changed baseline date
+Pop_changed <- Pop %>%
+  select(LopNr, baseline_old = baseline) %>%
+  inner_join(
+    Pop_new %>% select(LopNr, baseline_new = baseline),
+    by = "LopNr"
+  ) %>%
+  filter(baseline_old != baseline_new) %>%
+  mutate(diff_days = as.numeric(baseline_new - baseline_old)) %>%
+  arrange(LopNr)
+
+View(Pop_changed)
+
+# Number of patients with a changed baseline
+nrow(Pop_changed)
+
+# Patients newly included in Pop_new
+Pop_added <- Pop_new %>%
+  anti_join(Pop, by = "LopNr")
+
+# Patients no longer included in Pop_new
+Pop_removed <- Pop %>%
+  anti_join(Pop_new, by = "LopNr")
+
+# Summary
+data.frame(
+  Old_population   = nrow(Pop),
+  New_population   = nrow(Pop_new),
+  Changed_baseline = nrow(Pop_changed),
+  Newly_included   = nrow(Pop_added),
+  Excluded         = nrow(Pop_removed)
+)
+
+
+
+
+
 # Population
 Pop <- VTE %>%
   inner_join(TKI, by = "LopNr", relationship = "many-to-many") %>%
