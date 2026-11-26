@@ -1,3 +1,35 @@
+
+# Render categorical variables
+render_cat <- function(x, ...) {
+
+  n_total <- sum(!is.na(x))
+  values <- if (is.factor(x)) levels(x) else unique(na.omit(x))
+
+  if (all(values %in% c("Yes", "No"))) {
+    values <- "Yes"
+  } else if (all(values %in% c("Male", "Female"))) {
+    values <- "Male"
+  }
+
+  c(
+    "" = "",
+    setNames(
+      sapply(values, function(v) {
+        format_n_pct(sum(x == v, na.rm = TRUE), n_total)
+      }),
+      values
+    )
+  )
+}
+
+
+
+
+
+
+
+
+
 VTE2 <- open_dataset(file.path(der, "EVENTS_VTE.parquet")) %>%
   transmute(LopNr, INDATUM_VTE2 = INDATUM_VTE) %>%
   collect()
