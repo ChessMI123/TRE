@@ -1,3 +1,92 @@
+library(dplyr)
+library(survival)
+library(broom)
+
+# Format events as n/N (%)
+fmt <- function(n, N) {
+  sprintf("%d/%d (%.1f%%)", n, N, 100 * n / N)
+}
+
+# Cox regression table
+cox_table <- function(
+    data,
+    group,
+    outcome,
+    adj = NULL,
+    ref = "LMWH"
+) {
+
+  time <- paste0(outcome, "yrs")
+
+  outcome_label <- attr(data[[outcome]], "label")
+  if (is.null(outcome_label)) outcome_label <- outcome
+
+  # Define reference group
+  data[[group]] <- relevel(factor(data[[group]]), ref = ref)
+
+  # Descriptive statistics
+  desc <- data %>%
+    group_by(.data[[group]]) %>%
+    summarise(
+      N = sum(!is.na(.data[[outcome]])),
+      events = sum(.data[[outcome]], na.rm = TRUE),
+      PY = sum(.data[[time]], na.rm = TRUE),
+      IR = 100 * events / PY,
+      .groups = "drop"
+    )
+
+  # Helper function for Cox regression
+  get_cox <- function(vars) {
+
+    formula <- reformulate(
+      vars,
+      response = paste0(
+        "Surv(", time, ", ", outcome, ")"
+      )
+    )
+
+    coxph(formula, data = data) %>%
+      broom::tidy(exponentiate = TRUE, conf.int = TRUE) %>%
+      filter(term %in% paste0(group, levels(data[[group]])[-1]))
+  }
+
+  # Unadjusted Cox regression
+  s <- get_cox(group)
+
+  HR <- fmtci(s$estimate, s$conf.low, s$conf.high)
+  p <- pval_func(s$p.value)
+
+  # Combine results
+  idx <- match(levels(data[[group]]), desc[[group]])
+
+  result <- data.frame(
+    outcome = outcome_label,
+    group = levels(data[[group]]),
+    events = fmt(desc$events[idx], desc$N[idx]),
+    PY = round(desc$PY[idx], 0),
+    IR = round(desc$IR[idx], 2),
+    HR = c("", HR),
+    pval = c("", p)
+  )
+
+  # Adjusted Cox regression
+  if (!is.null(adj)) {
+
+    s_adj <- get_cox(c(group, adj))
+
+    result$HR_adj <- c(
+      "",
+      fmtci(s_adj$estimate, s_adj$conf.low, s_adj$conf.high)
+    )
+
+    result$pval_adj <- c("", pval_func(s_adj$p.value))
+  }
+
+  return(result)
+}
+
+
+
 
 cancer_vars <- c(
   "bl_ALL", "bl_Breast_cancer", "bl_CML", "bl_GIST",
@@ -39,7 +128,13 @@ render_cat <- function(x, ...) {
 }
 
 
-
+cox_table(
+  data = adsl,
+  group = "treatment",
+  outcome = "Major_bleeding",
+  adj = c("age", "sex"),
+  ref = "LMWH"
+)
 
 
 
