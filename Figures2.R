@@ -1,3 +1,12 @@
+cox_table(
+  data = adsl,
+  group = "treatment",
+  outcome = "Major_bleeding",
+  adj = c("age", "sex"),
+  ref = "LMWH"
+)
+
+
 library(dplyr)
 library(survival)
 library(broom)
