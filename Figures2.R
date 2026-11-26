@@ -1,3 +1,23 @@
+render_cat <- function(x, ...) {
+  if (all(na.omit(unique(as.character(x))) %in% c("Yes", "No"))) {
+    n_yes <- sum(x == "Yes", na.rm = TRUE)
+    n_total <- sum(!is.na(x))
+    
+    return(c("Yes" = sprintf("%d (%.1f%%)", n_yes, 100 * n_yes / n_total)))
+  }
+  
+  if (all(na.omit(unique(as.character(x))) %in% c("Male", "Female"))) {
+    n_male <- sum(x == "Male", na.rm = TRUE)
+    n_total <- sum(!is.na(x))
+    
+    return(c("Male" = sprintf("%d (%.1f%%)", n_male, 100 * n_male / n_total)))
+  }
+  
+  table1::render.categorical.default(x, ...)
+}
+
+
+
 ### Add treatment vars here!
 all_vars <- c("gestational_age_weeks", "birth_weight_g", "sex",
               "Ivh_ae_bin", "nec_ae_bin", "pdamed_ae_bin", "sepsis_ae_bin",
