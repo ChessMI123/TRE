@@ -1,3 +1,5 @@
+adsl <- adsl %>%
+  time_to_event("Major_bleeding")
 
 time_to_event <- function(data, Name) {
 
