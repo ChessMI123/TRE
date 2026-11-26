@@ -1,3 +1,32 @@
+diseases <- c(
+  "N_Intra_bleeding",
+  "T_Intra_bleeding",
+  "Hemopericardium",
+  "Gastro_bleeding",
+  "Airway_bleeding",
+  "Anemia_bleeding",
+  "Genital_bleeding",
+  "Hematuria",
+  "Eye_bleeding"
+)
+
+Bleeding <- lapply(diseases, function(disease) {
+
+  open_dataset(file.path(der, paste0("EVENTS_", disease, ".parquet"))) %>%
+    select(LopNr, Reg, INDATUM, DIAGNOSE) %>%
+    collect()
+
+}) %>%
+  bind_rows() %>%
+  distinct() %>%
+  arrange(LopNr, INDATUM)
+
+
+write_parquet(Bleeding, file.path(der, "EVENTS_Major_bleeding.parquet"))
+
+
+
+
 
 
 bleeding_types <- c(
