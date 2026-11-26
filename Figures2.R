@@ -1,3 +1,27 @@
+### Add treatment vars here!
+all_vars <- c("gestational_age_weeks", "birth_weight_g", "sex",
+              "Ivh_ae_bin", "nec_ae_bin", "pdamed_ae_bin", "sepsis_ae_bin",
+              "type1_rop", "rop_treatment","zone1","zone2","postnatal_age_at_inclusion_weeks",
+              "postnatal_age_at_study_stop_weeks", "postmenstrual_age_at_inclusion_weeks",
+              "postmenstrual_age_at_study_stop_weeks", "duration_of_intervention_weeks")
+
+t1f <- as.formula(paste("~", paste(all_vars, collapse = "+"), "| randomized_group"))
+
+tab1 <- as.data.frame(
+  table1::table1(
+    t1f,
+    data = adsl_PP,
+    render.categorical = render_cat,
+    render.continuous = c("median [min-max]"),
+    render.missing = NULL,
+  )
+)
+
+
+
+
+
+
 adsl <- adsl %>%
   time_to_event("Major_bleeding")
 
