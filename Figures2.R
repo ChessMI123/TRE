@@ -14,6 +14,46 @@ time_to_event <- function(data, Name) {
     inner_join(events, by = "LopNr", relationship = "many-to-many") %>%
     filter(.data[[ind_col]] > baseline) %>%
     group_by(LopNr) %>%
+    slice_min(order_by = .data[[ind_col]], n = 1, with_ties = FALSE) %>%
+    ungroup() %>%
+    select(LopNr, all_of(ind_col))
+
+  # Calculate time to event
+  data %>%
+    left_join(first_event, by = "LopNr") %>%
+    mutate(
+      !!Name := case_when(
+        !is.na(.data[[ind_col]]) & .data[[ind_col]] <= cens ~ 1,
+        TRUE ~ 0
+      ),
+
+      !!years_col := case_when(
+        .data[[Name]] == 1 ~ as.numeric(.data[[ind_col]] - baseline) / 365.25,
+        TRUE ~ as.numeric(cens - baseline) / 365.25
+      )
+    )
+}
+
+
+
+
+
+time_to_event <- function(data, Name) {
+
+  ind_col   <- paste0("INDATUM_", Name)
+  years_col <- paste0(Name, "yrs")
+
+  # Read event dataset
+  events <- open_dataset(file.path(der, paste0("EVENTS_", Name, ".parquet"))) %>%
+    select(LopNr, all_of(ind_col)) %>%
+    collect()
+
+  # Identify first event after baseline
+  first_event <- data %>%
+    select(LopNr, baseline) %>%
+    inner_join(events, by = "LopNr", relationship = "many-to-many") %>%
+    filter(.data[[ind_col]] > baseline) %>%
+    group_by(LopNr) %>%
     summarise(
       !!ind_col := min(.data[[ind_col]]),
       .groups = "drop"
