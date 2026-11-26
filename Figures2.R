@@ -1,3 +1,18 @@
+
+cancer_vars <- c(
+  "bl_ALL", "bl_Breast_cancer", "bl_CML", "bl_GIST",
+  "bl_Kidney_cancer", "bl_Lung_cancer", "bl_pNET",
+  "bl_Thyroid_cancer", "bl_Urothelial_cancer"
+)
+
+# Patients with multiple cancer types
+look <- adsl %>%
+  mutate(n_cancer = rowSums(across(all_of(cancer_vars), ~ .x == "Yes"),
+                            na.rm = TRUE)) %>%
+  filter(n_cancer > 1) %>%
+  select(LopNr, n_cancer, all_of(cancer_vars))
+
+
 # Render categorical variables
 render_cat <- function(x, ...) {
 
