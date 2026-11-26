@@ -1,3 +1,14 @@
+# Patients with DOAC or LMWH dispensing within 3 months prior to baseline
+look <- Pop %>%
+  inner_join(AC, by = "LopNr", relationship = "many-to-many") %>%
+  filter(
+    EDATUM_AC >= baseline %m-% months(3),
+    EDATUM_AC < baseline
+  ) %>%
+  distinct(LopNr)
+
+
+
 Pop %>%
   filter(treatment == "DOAC") %>%
   inner_join(LMWH, by = "LopNr") %>%
