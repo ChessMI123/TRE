@@ -1,3 +1,25 @@
+render_cat <- function(x, ...) {
+
+  n_total <- sum(!is.na(x))
+  values <- if (is.factor(x)) levels(x) else unique(na.omit(x))
+
+  if (all(values %in% c("Yes", "No"))) {
+    values <- "Yes"
+  } else if (all(values %in% c("Male", "Female"))) {
+    values <- "Male"
+  }
+
+  setNames(
+    sapply(values, function(v) {
+      format_n_pct(sum(x == v, na.rm = TRUE), n_total)
+    }),
+    values
+  )
+}
+
+
+
+
 c("bl_7y_Hypertension", "bl_7y_HF", "bl_7y_COPD", "bl_7y_Diabetes",
   "bl_7y_Renal", "bl_7y_Liver", "bl_7y_Ischemic_heart_disease",
   "bl_7y_Peripheral", "bl_7y_Ischemicstroke", "bl_7y_Hemorrhagicstroke",
