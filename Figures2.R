@@ -1,4 +1,23 @@
+# Format n (%)
+format_n_pct <- function(n, total) {
+  sprintf("%d (%.1f%%)", n, 100 * n / total)
+}
 
+# Render categorical variables
+render_cat <- function(x, ...) {
+
+  n_total <- sum(!is.na(x))
+
+  if (all(na.omit(unique(as.character(x))) %in% c("Yes", "No"))) {
+    return(c("Yes" = format_n_pct(sum(x == "Yes", na.rm = TRUE), n_total)))
+  }
+
+  if (all(na.omit(unique(as.character(x))) %in% c("Male", "Female"))) {
+    return(c("Male" = format_n_pct(sum(x == "Male", na.rm = TRUE), n_total)))
+  }
+
+  table1::render.categorical.default(x, ...)
+}
 
 c("bl_ALL", "bl_Breast_cancer", "bl_CML", "bl_GIST", "bl_Kidney_cancer",
   "bl_Lung_cancer", "bl_pNET", "bl_Thyroid_cancer", "bl_Urothelial_cancer")
