@@ -1,3 +1,11 @@
+Pop %>%
+  filter(treatment == "DOAC") %>%
+  inner_join(LMWH, by = "LopNr") %>%
+  filter(EDATUM_LMWH < baseline) %>%
+  distinct(LopNr)
+
+
+
 diseases <- c(
   "N_Intra_bleeding",
   "T_Intra_bleeding",
