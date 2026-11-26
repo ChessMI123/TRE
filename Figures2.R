@@ -1,3 +1,17 @@
+Fatal_Bleeding <- Major_bleeding %>%
+  filter(REG == "CDR") %>%
+  rename(
+    Fatal_Bleeding = Major_bleeding,
+    INDATUM_Fatal_Bleeding = INDATUM_Major_bleeding
+  )
+
+write_parquet(Fatal_Bleeding, file.path(der, "EVENTS_Fatal_Bleeding.parquet"))
+
+
+
+
+
+
 render_cat <- function(x, ...) {
 
   n_total <- sum(!is.na(x))
