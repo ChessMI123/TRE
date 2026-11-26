@@ -1,3 +1,33 @@
+# Render categorical variables
+render_cat <- function(x, ...) {
+
+  n_total <- sum(!is.na(x))
+  values <- if (is.factor(x)) levels(x) else unique(na.omit(x))
+
+  if (all(values %in% c("Yes", "No"))) {
+    return(c("Yes" = format_n_pct(sum(x == "Yes", na.rm = TRUE), n_total)))
+  }
+
+  if (all(values %in% c("Male", "Female"))) {
+    return(c("Male" = format_n_pct(sum(x == "Male", na.rm = TRUE), n_total)))
+  }
+
+  c(
+    "",
+    setNames(
+      sapply(values, function(v) {
+        format_n_pct(sum(x == v, na.rm = TRUE), n_total)
+      }),
+      values
+    )
+  )
+}
+
+
+
+
+
+
 
 # Render categorical variables
 render_cat <- function(x, ...) {
