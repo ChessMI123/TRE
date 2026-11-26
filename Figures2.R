@@ -1,3 +1,9 @@
+c("bl_7y_Hypertension", "bl_7y_HF", "bl_7y_COPD", "bl_7y_Diabetes",
+  "bl_7y_Renal", "bl_7y_Liver", "bl_7y_Ischemic_heart_disease",
+  "bl_7y_Peripheral", "bl_7y_Ischemicstroke", "bl_7y_Hemorrhagicstroke",
+  "bl_7y_CTD", "bl_7y_IBD", "bl_7y_PUD", "bl_7y_AFib")
+
+
 # Format n (%)
 format_n_pct <- function(n, total) {
   sprintf("%d (%.1f%%)", n, 100 * n / total)
