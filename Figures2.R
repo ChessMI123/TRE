@@ -1,3 +1,18 @@
+VTE2 <- open_dataset(file.path(der, "EVENTS_VTE.parquet")) %>%
+  transmute(LopNr, INDATUM_VTE2 = INDATUM_VTE) %>%
+  collect()
+
+# Identify additional VTE events between first VTE and baseline
+look <- Pop %>%
+  inner_join(VTE2, by = "LopNr", relationship = "many-to-many") %>%
+  filter(
+    INDATUM_VTE2 > INDATUM_VTE,
+    INDATUM_VTE2 < baseline
+  ) %>%
+  arrange(LopNr, INDATUM_VTE2)
+
+
+
 time_to_event <- function(data, Name) {
 
   ind_col   <- paste0("INDATUM_", Name)
