@@ -1,3 +1,36 @@
+# Descriptive statistics
+desc <- data %>%
+  group_by(.data[[group]]) %>%
+  summarise(
+    N = sum(!is.na(.data[[outcome]])),
+    events = sum(.data[[outcome]], na.rm = TRUE),
+    median_FU = median(.data[[time]], na.rm = TRUE),
+    Q1 = quantile(.data[[time]], 0.25, na.rm = TRUE),
+    Q3 = quantile(.data[[time]], 0.75, na.rm = TRUE),
+    PY = sum(.data[[time]], na.rm = TRUE),
+    IR = 100 * events / PY,
+    .groups = "drop"
+  )
+
+
+
+
+fmt_py <- function(median, Q1, Q3, PY) {
+  sprintf("%.1f (%.1f - %.1f) Sum=%.0f", median, Q1, Q3, PY)
+}
+
+result <- data.frame(
+  outcome = outcome_label,
+  group = levels(data[[group]]),
+  events = fmt(desc$events[idx], desc$N[idx]),
+  PY = fmt_py(desc$median_FU[idx], desc$Q1[idx],
+              desc$Q3[idx], desc$PY[idx]),
+  IR = round(desc$IR[idx], 2),
+  HR = c("", HR),
+  pval = c("", p)
+)
+
+
 cox_table(
   data = adsl,
   group = "treatment",
