@@ -1,4 +1,7 @@
 
+
+c("bl_ALL", "bl_Breast_cancer", "bl_CML", "bl_GIST", "bl_Kidney_cancer",
+  "bl_Lung_cancer", "bl_pNET", "bl_Thyroid_cancer", "bl_Urothelial_cancer")
 excl_factor = factor(
   excl,
   levels = 0:4,
