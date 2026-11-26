@@ -1,3 +1,17 @@
+
+excl_factor = factor(
+  excl,
+  levels = 0:4,
+  labels = c(
+    "Included",
+    "Dialysis within 3 months or at baseline",
+    "Strong CYP3A4 inhibitors within 3 months or at baseline",
+    "DOAC or LMWH within 3 months prior to baseline",
+    "Same-day initiation of DOAC and LMWH"
+  )
+)
+
+
 render_cat <- function(x, ...) {
   if (all(na.omit(unique(as.character(x))) %in% c("Yes", "No"))) {
     n_yes <- sum(x == "Yes", na.rm = TRUE)
