@@ -1,3 +1,47 @@
+time_to_event <- function(data, Name) {
+
+  ind_col    <- paste0("INDATUM_", Name)
+  months_col <- paste0(Name, "months")
+
+  # Read event dataset
+  events <- open_dataset(file.path(der, paste0("EVENTS_", Name, ".parquet"))) %>%
+    select(LopNr, all_of(ind_col)) %>%
+    collect()
+
+  # Identify first event after baseline
+  first_event <- data %>%
+    select(LopNr, baseline) %>%
+    inner_join(events, by = "LopNr", relationship = "many-to-many") %>%
+    filter(.data[[ind_col]] > baseline) %>%
+    group_by(LopNr) %>%
+    slice_min(order_by = .data[[ind_col]], n = 1, with_ties = FALSE) %>%
+    ungroup() %>%
+    select(LopNr, all_of(ind_col))
+
+  # Calculate time to event in months
+  data %>%
+    left_join(first_event, by = "LopNr") %>%
+    mutate(
+      !!Name := case_when(
+        !is.na(.data[[ind_col]]) & .data[[ind_col]] <= cens ~ 1,
+        TRUE ~ 0
+      ),
+
+      !!months_col := case_when(
+        .data[[Name]] == 1 ~ as.numeric(.data[[ind_col]] - baseline) / (365.25 / 12),
+        TRUE ~ as.numeric(cens - baseline) / (365.25 / 12)
+      )
+    )
+}
+
+
+
+
+
+
+
+
+
 
 png(file.path(projroot,"Output/",paste0("Figure_03_01_",format(Sys.Date(),"%Y-%m-%d"), ".png", sep = "")), width = 7.5, height = 3.5, units="in", res = 300)
 p
