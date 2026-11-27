@@ -1,4 +1,59 @@
+library(dplyr)
+library(survival)
+library(splines)
 
+adsl <- adsl %>%
+    mutate(groups = if_else(group == "controls", 0, 1))
+
+# Prediction grid
+times <- seq(min(adsl$CVDyrs), max(adsl$CVDyrs), length.out = 100)
+
+# Define fixed knots based on event times
+spline_df <- 2
+
+knot_times <- adsl$CVDyrs[adsl$CVD == 1]
+
+k <- quantile(knot_times,
+              probs = seq(0, 1, length.out = spline_df + 1))
+
+k_inner <- k[-c(1, length(k))]
+k_bound <- k[c(1, length(k))]
+
+# Cox model with time-varying treatment effect
+fit_spline_model <- coxph(
+    Surv(time = CVDyrs, event = CVD) ~
+        relevel(factor(groups), ref = "0") + tt(groups),
+    data = adsl,
+    tt = function(x, time, ...) {
+        ns(time, knots = k_inner,
+           Boundary.knots = k_bound) * x
+    }
+)
+
+# Extract coefficients and variance-covariance matrix
+b <- coef(fit_spline_model)
+V <- vcov(fit_spline_model)
+
+# Function to calculate HR and 95% CI
+hazard_ratio <- function(t) {
+
+    X <- cbind(1, ns(t, knots = k_inner,
+                     Boundary.knots = k_bound))
+
+    logHR <- as.numeric(X %*% b)
+
+    SE_LOGHR <- sqrt(rowSums((X %*% V) * X))
+
+    data.frame(
+        time  = t,
+        HR    = exp(logHR),
+        lower = exp(logHR - qnorm(0.975) * SE_LOGHR),
+        upper = exp(logHR + qnorm(0.975) * SE_LOGHR)
+    )
+}
+
+# HR over time
+hr_df <- hazard_ratio(times)
 load(file.path(res, "adsl.RData"))
 
 FAS <- adsl %>% filter(FAS == 1)
