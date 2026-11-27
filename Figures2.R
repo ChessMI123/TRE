@@ -1,3 +1,8 @@
+
+png(file.path(projroot,"Output/",paste0("Figure_03_01_",format(Sys.Date(),"%Y-%m-%d"), ".png", sep = "")), width = 7.5, height = 3.5, units="in", res = 300)
+p
+dev.off()
+
 # Descriptive statistics
 desc <- data %>%
   group_by(.data[[group]]) %>%
