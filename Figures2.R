@@ -1,3 +1,19 @@
+Pop <- Pop %>%
+  mutate(
+    censor_reason = case_when(
+      cens == deathdt       ~ "Death",
+      cens == treatment_end ~ "End of treatment",
+      cens == endofFU       ~ "End of follow-up",
+      TRUE                 ~ NA_character_
+    )
+  )
+
+table(Pop$censor_reason, Pop$AC, useNA = "always")
+
+
+
+
+
 events <- open_dataset(file.path(der, "EVENTS_VTE.parquet")) %>%
   rename(INDATUM_VTE_new = INDATUM_VTE) %>%
   collect()
