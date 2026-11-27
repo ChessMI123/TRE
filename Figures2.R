@@ -1,3 +1,20 @@
+events <- open_dataset(file.path(der, "EVENTS_VTE.parquet")) %>%
+  rename(INDATUM_VTE_new = INDATUM_VTE) %>%
+  collect()
+
+check <- Pop %>%
+  select(LopNr, INDATUM_VTE, baseline) %>%
+  inner_join(events, by = "LopNr", relationship = "many-to-many") %>%
+  filter(INDATUM_VTE_new > INDATUM_VTE,
+         INDATUM_VTE_new <= baseline) %>%
+  arrange(LopNr, INDATUM_VTE_new)
+
+View(check)
+
+n_distinct(check$LopNr)
+
+
+
 get_disease(Disease = "Arterial_thrombosis", Register = c("SV"), Position = 1, ICD10 = "^(I63|I64|G459|I2[0-5])")
 events <- open_dataset(file.path(der, "EVENTS_Arterial_thrombosis.parquet")) %>%
   collect()
