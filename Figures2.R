@@ -1,3 +1,35 @@
+
+load(file.path(res, "adsl.RData"))
+
+FAS <- adsl %>% filter(FAS == 1)
+
+tab3 <- FAS %>%
+  mutate(
+    censor_reason = case_when(
+      cens == deathdt       ~ "Death",
+      cens == treatment_end ~ "End of treatment",
+      cens == endofFU       ~ "End of follow-up",
+      TRUE                 ~ NA_character_
+    ),
+    censor_reason = factor(
+      censor_reason,
+      levels = c("Death", "End of treatment", "End of follow-up")
+    )
+  )
+
+T3 <- as.data.frame(
+  table(tab3$censor_reason, tab3$treatment, useNA = "always")
+)
+
+names(T3) <- c("censor_reason", "treatment", "n")
+
+T3$order <- 1:nrow(T3)
+
+write_xlsx(T3, path = file.path(res, "T3.xlsx"))
+
+
+
+
 Pop <- Pop %>%
   mutate(
     censor_reason = case_when(
